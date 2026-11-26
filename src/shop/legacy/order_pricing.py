@@ -9,6 +9,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from decimal import ROUND_HALF_UP, Decimal
+from enum import StrEnum
 
 MONEY_STEP = Decimal("0.01")
 ZERO = Decimal("0.00")
@@ -57,6 +58,45 @@ def _quantity_discount(subtotal: Decimal, total_qty: int) -> Decimal:
     return ZERO
 
 
+class CouponCode(StrEnum):
+    SAVE10 = "SAVE10"
+    SAVE20 = "SAVE20"
+    MINUS100 = "MINUS100"
+
+
+@dataclass(frozen=True, slots=True)
+class CouponRule:
+    min_subtotal: Decimal
+    percent: Decimal
+    fixed: Decimal
+
+
+COUPON_RULES: dict[CouponCode, CouponRule] = {
+    CouponCode.SAVE10: CouponRule(
+        min_subtotal=Decimal("500.00"), percent=Decimal("0.10"), fixed=ZERO
+    ),
+    CouponCode.SAVE20: CouponRule(
+        min_subtotal=Decimal("1000.00"), percent=Decimal("0.20"), fixed=ZERO
+    ),
+    CouponCode.MINUS100: CouponRule(
+        min_subtotal=Decimal("800.00"), percent=ZERO, fixed=Decimal("100.00")
+    ),
+}
+
+
+def _coupon_discount(subtotal: Decimal, promo_code: str | None) -> Decimal:
+    if promo_code is None:
+        return ZERO
+    try:
+        code = CouponCode(promo_code)
+    except ValueError:
+        return ZERO
+    rule = COUPON_RULES[code]
+    if subtotal < rule.min_subtotal:
+        return ZERO
+    return _money(subtotal * rule.percent + rule.fixed)
+
+
 def calculate_order_price(
     items: list[LegacyItem],
     customer_type: str,
@@ -66,19 +106,7 @@ def calculate_order_price(
 ) -> dict[str, object]:
     subtotal, total_qty = _subtotal(items)
     quantity_discount = _quantity_discount(subtotal, total_qty)
-
-    coupon_discount = ZERO
-    if promo_code is not None:
-        if promo_code == "SAVE10":
-            if subtotal >= Decimal("500.00"):
-                coupon_discount = subtotal * Decimal("0.10")
-        elif promo_code == "SAVE20":
-            if subtotal >= Decimal("1000.00"):
-                coupon_discount = subtotal * Decimal("0.20")
-        elif promo_code == "MINUS100":
-            if subtotal >= Decimal("800.00"):
-                coupon_discount = Decimal("100.00")
-    coupon_discount = _money(coupon_discount)
+    coupon_discount = _coupon_discount(subtotal, promo_code)
 
     loyalty_discount = ZERO
     if customer_type == "silver":
