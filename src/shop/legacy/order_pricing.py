@@ -245,6 +245,18 @@ def calculate_price(request: PricingRequest) -> dict[str, object]:
     loyalty_discount = _loyalty_discount(
         subtotal, request.customer_type, request.loyalty_years
     )
+
+    largest = max(quantity_discount, coupon_discount, loyalty_discount)
+    if largest == quantity_discount:
+        coupon_discount = ZERO
+        loyalty_discount = ZERO
+    elif largest == coupon_discount:
+        quantity_discount = ZERO
+        loyalty_discount = ZERO
+    else:
+        quantity_discount = ZERO
+        coupon_discount = ZERO
+
     discounted = _discounted(
         subtotal, quantity_discount, coupon_discount, loyalty_discount
     )
