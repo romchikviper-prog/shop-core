@@ -526,5 +526,38 @@
     "total": "-120.00",
     "promo_code": null,
     "customer_type": "regular"
+  },
+  "rounding_half_up_subtotal": {
+    "subtotal": "10.01",
+    "quantity_discount": "0.00",
+    "coupon_discount": "0.00",
+    "loyalty_discount": "0.00",
+    "tax": "2.00",
+    "delivery": "0.00",
+    "total": "12.01",
+    "promo_code": null,
+    "customer_type": "regular"
+  },
+  "zero_quantity_first": {
+    "subtotal": "500.00",
+    "quantity_discount": "0.00",
+    "coupon_discount": "0.00",
+    "loyalty_discount": "0.00",
+    "tax": "100.00",
+    "delivery": "0.00",
+    "total": "600.00",
+    "promo_code": null,
+    "customer_type": "regular"
+  },
+  "courier_exact_1000": {
+    "subtotal": "1000.00",
+    "quantity_discount": "0.00",
+    "coupon_discount": "0.00",
+    "loyalty_discount": "0.00",
+    "tax": "200.00",
+    "delivery": "0.00",
+    "total": "1200.00",
+    "promo_code": null,
+    "customer_type": "regular"
   }
 }

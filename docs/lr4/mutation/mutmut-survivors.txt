@@ -1,0 +1,53 @@
+===== shop.legacy.order_pricing.x__money__mutmut_2 =====
+# shop.legacy.order_pricing.x__money__mutmut_2: survived
+--- src/shop/legacy/order_pricing.py
++++ src/shop/legacy/order_pricing.py
+@@ -1,2 +1,2 @@
+ def _money(value: Decimal) -> Decimal:
+-    return value.quantize(MONEY_STEP, rounding=ROUNDING)
++    return value.quantize(MONEY_STEP, rounding=None)
+===== shop.legacy.order_pricing.x__money__mutmut_4 =====
+# shop.legacy.order_pricing.x__money__mutmut_4: survived
+--- src/shop/legacy/order_pricing.py
++++ src/shop/legacy/order_pricing.py
+@@ -1,2 +1,2 @@
+ def _money(value: Decimal) -> Decimal:
+-    return value.quantize(MONEY_STEP, rounding=ROUNDING)
++    return value.quantize(MONEY_STEP, )
+===== shop.legacy.order_pricing.x__subtotal__mutmut_4 =====
+# shop.legacy.order_pricing.x__subtotal__mutmut_4: survived
+--- src/shop/legacy/order_pricing.py
++++ src/shop/legacy/order_pricing.py
+@@ -2,7 +2,7 @@
+     subtotal = ZERO
+     total_qty = 0
+     for item in items:
+-        if item.quantity <= 0:
++        if item.quantity < 0:
+             continue
+         subtotal = subtotal + item.price * item.quantity
+         total_qty = total_qty + item.quantity
+===== shop.legacy.order_pricing.x__subtotal__mutmut_6 =====
+# shop.legacy.order_pricing.x__subtotal__mutmut_6: survived
+--- src/shop/legacy/order_pricing.py
++++ src/shop/legacy/order_pricing.py
+@@ -3,7 +3,7 @@
+     total_qty = 0
+     for item in items:
+         if item.quantity <= 0:
+-            continue
++            break
+         subtotal = subtotal + item.price * item.quantity
+         total_qty = total_qty + item.quantity
+     return _money(subtotal), total_qty
+===== shop.legacy.order_pricing.x__delivery_cost__mutmut_5 =====
+# shop.legacy.order_pricing.x__delivery_cost__mutmut_5: survived
+--- src/shop/legacy/order_pricing.py
++++ src/shop/legacy/order_pricing.py
+@@ -1,5 +1,5 @@
+ def _delivery_cost(delivery: str, discounted: Decimal) -> Decimal:
+     rule = DELIVERY_RULES[_parse_delivery(delivery)]
+-    if rule.free_from is not None and discounted >= rule.free_from:
++    if rule.free_from is not None and discounted > rule.free_from:
+         return ZERO
+     return rule.price

@@ -1,0 +1,60 @@
+{
+  "tool": "mutmut 3.8.1",
+  "environment": "WSL Ubuntu 22.04, Python 3.13.18",
+  "target": "src/shop/legacy/order_pricing.py",
+  "tests": [
+    "tests/test_legacy_pricing.py",
+    "tests/test_legacy_pricing_tdd.py"
+  ],
+  "first_run": {
+    "total": 167,
+    "killed": 162,
+    "survived": 5,
+    "timeout": 0,
+    "survivors": [
+      "shop.legacy.order_pricing.x__money__mutmut_2",
+      "shop.legacy.order_pricing.x__money__mutmut_4",
+      "shop.legacy.order_pricing.x__subtotal__mutmut_4",
+      "shop.legacy.order_pricing.x__subtotal__mutmut_6",
+      "shop.legacy.order_pricing.x__delivery_cost__mutmut_5"
+    ]
+  },
+  "added_tests": [
+    {
+      "case": "rounding_half_up_subtotal",
+      "kills": [
+        "shop.legacy.order_pricing.x__money__mutmut_2",
+        "shop.legacy.order_pricing.x__money__mutmut_4"
+      ],
+      "reason": "Ціна 10.005 показує різницю між ROUND_HALF_UP і ROUND_HALF_EVEN; без явного rounding результат інший."
+    },
+    {
+      "case": "zero_quantity_first",
+      "kills": [
+        "shop.legacy.order_pricing.x__subtotal__mutmut_6"
+      ],
+      "reason": "Позиція з нульовою кількістю стоїть першою; continue пропускає її й обробляє наступну, break зупиняє цикл."
+    },
+    {
+      "case": "courier_exact_1000",
+      "kills": [
+        "shop.legacy.order_pricing.x__delivery_cost__mutmut_5"
+      ],
+      "reason": "Підсумок рівно 1000 грн перевіряє межу >= для безкоштовної кур'єрської доставки."
+    }
+  ],
+  "final_run": {
+    "total": 167,
+    "killed": 166,
+    "survived": 1,
+    "timeout": 0,
+    "suspicious": 0,
+    "remaining_survivor": "shop.legacy.order_pricing.x__subtotal__mutmut_4",
+    "mutation": "if item.quantity <= 0 -> if item.quantity < 0",
+    "equivalence_reason": "Для скінченних цін позиція з quantity=0 додає price*0=0 до subtotal і 0 до total_qty, тому обидві умови дають однаковий результат; від'ємні кількості обидві умови пропускають. Різниця можлива лише для NaN/Infinity, які не є припустимими цінами предметної області.",
+    "equivalent": 1
+  },
+  "mutation_score_raw_percent": 99.4,
+  "mutation_score_adjusted_percent": 100.0,
+  "formula": "killed / (total - equivalent)"
+}

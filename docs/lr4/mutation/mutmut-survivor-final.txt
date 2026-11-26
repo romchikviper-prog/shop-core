@@ -1,0 +1,12 @@
+# shop.legacy.order_pricing.x__subtotal__mutmut_4: survived
+--- src/shop/legacy/order_pricing.py
++++ src/shop/legacy/order_pricing.py
+@@ -2,7 +2,7 @@
+     subtotal = ZERO
+     total_qty = 0
+     for item in items:
+-        if item.quantity <= 0:
++        if item.quantity < 0:
+             continue
+         subtotal = subtotal + item.price * item.quantity
+         total_qty = total_qty + item.quantity

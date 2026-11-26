@@ -679,5 +679,52 @@
     "loyalty_years": 0,
     "promo_code": null,
     "delivery": "pickup"
+  },
+  {
+    "id": "rounding_half_up_subtotal",
+    "items": [
+      {
+        "name": "R",
+        "price": "10.005",
+        "quantity": 1
+      }
+    ],
+    "customer_type": "regular",
+    "loyalty_years": 0,
+    "promo_code": null,
+    "delivery": "pickup"
+  },
+  {
+    "id": "zero_quantity_first",
+    "items": [
+      {
+        "name": "A",
+        "price": "100.00",
+        "quantity": 0
+      },
+      {
+        "name": "B",
+        "price": "250.00",
+        "quantity": 2
+      }
+    ],
+    "customer_type": "regular",
+    "loyalty_years": 0,
+    "promo_code": null,
+    "delivery": "pickup"
+  },
+  {
+    "id": "courier_exact_1000",
+    "items": [
+      {
+        "name": "D",
+        "price": "1000.00",
+        "quantity": 1
+      }
+    ],
+    "customer_type": "regular",
+    "loyalty_years": 0,
+    "promo_code": null,
+    "delivery": "courier"
   }
 ]

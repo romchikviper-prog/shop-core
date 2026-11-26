@@ -1,0 +1,5 @@
+    shop.legacy.order_pricing.x__money__mutmut_2: survived
+    shop.legacy.order_pricing.x__money__mutmut_4: survived
+    shop.legacy.order_pricing.x__subtotal__mutmut_4: survived
+    shop.legacy.order_pricing.x__subtotal__mutmut_6: survived
+    shop.legacy.order_pricing.x__delivery_cost__mutmut_5: survived
