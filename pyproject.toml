@@ -22,3 +22,12 @@ python_version = "3.12"
 strict = true
 mypy_path = "src"
 files = ["src"]
+
+[tool.mutmut]
+source_paths = ["src"]
+only_mutate = ["src/shop/legacy/order_pricing.py"]
+pytest_add_cli_args_test_selection = [
+    "tests/test_legacy_pricing.py",
+    "tests/test_legacy_pricing_tdd.py",
+]
+pytest_add_cli_args = ["-q", "-x", "--tb=no"]
