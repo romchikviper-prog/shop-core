@@ -161,7 +161,7 @@
     "tax": "80.00",
     "delivery": "0.00",
     "total": "480.00",
-    "promo_code": "SAVE10",
+    "promo_code": null,
     "customer_type": "regular"
   },
   "coupon_save20_1000": {
@@ -183,7 +183,7 @@
     "tax": "180.00",
     "delivery": "0.00",
     "total": "1080.00",
-    "promo_code": "SAVE20",
+    "promo_code": null,
     "customer_type": "regular"
   },
   "coupon_minus100_1200": {
@@ -205,7 +205,7 @@
     "tax": "100.00",
     "delivery": "0.00",
     "total": "600.00",
-    "promo_code": "MINUS100",
+    "promo_code": null,
     "customer_type": "regular"
   },
   "coupon_unknown": {
@@ -216,7 +216,7 @@
     "tax": "20.00",
     "delivery": "0.00",
     "total": "120.00",
-    "promo_code": "UNKNOWN",
+    "promo_code": null,
     "customer_type": "regular"
   },
   "coupon_empty_string": {
@@ -227,7 +227,7 @@
     "tax": "20.00",
     "delivery": "0.00",
     "total": "120.00",
-    "promo_code": "",
+    "promo_code": null,
     "customer_type": "regular"
   },
   "silver_0": {
@@ -414,7 +414,7 @@
     "tax": "100.00",
     "delivery": "99.00",
     "total": "699.00",
-    "promo_code": "MINUS100",
+    "promo_code": null,
     "customer_type": "regular"
   },
   "multi_items_800": {

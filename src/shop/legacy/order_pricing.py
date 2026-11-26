@@ -272,6 +272,12 @@ def calculate_price(request: PricingRequest) -> dict[str, object]:
     tax = _tax(discounted)
     delivery_cost = _delivery_cost(request.delivery, discounted)
     total = _final_total(discounted, tax, delivery_cost)
+    has_discount = (
+        discounts.quantity != ZERO
+        or discounts.coupon != ZERO
+        or discounts.loyalty != ZERO
+    )
+    effective_promo = request.promo_code if has_discount else None
 
     return _build_report(
         PricingBreakdown(
@@ -282,7 +288,7 @@ def calculate_price(request: PricingRequest) -> dict[str, object]:
             tax=tax,
             delivery_cost=delivery_cost,
             total=total,
-            promo_code=request.promo_code,
+            promo_code=effective_promo,
             customer_type=request.customer_type,
         )
     )
