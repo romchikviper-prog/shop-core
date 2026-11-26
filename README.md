@@ -155,7 +155,7 @@ Event storming дав 11 подій, 7 команд, 2 повноцінні аг
 
 ![C4 Container](docs/c4/container.png)
 
-Код: [`context.puml`](docs/c4/context.puml), [`container.puml`](docs/c4/container.puml). Кожен елемент підписаний призначенням і технологією, кожен зв'язок — способом взаємодії (`HTTPS/JSON`, `HTTPS/REST`, `SQL/TLS`). Рендер і ліцензія C4-PlantUML — у [`docs/c4/README.md`](docs/c4/README.md).
+Код: [`context.puml`](docs/c4/context.puml), [`container.puml`](docs/c4/container.puml). Кожен елемент підписаний призначенням, контейнери — технологією, кожен зв'язок — способом взаємодії (`HTTPS/JSON`, `HTTPS/REST`, `SQL/TLS`). Рендер і ліцензія C4-PlantUML — у [`docs/c4/README.md`](docs/c4/README.md).
 
 ## 5. Крок 4. Вибір стеку та стилю
 
