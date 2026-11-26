@@ -25,3 +25,16 @@ def test_only_largest_discount_is_applied() -> None:
     assert result["loyalty_discount"] == Decimal("0.00")
     assert result["total"] == Decimal("960.00")
     assert result["promo_code"] == "SAVE20"
+
+
+def test_zero_effect_promo_is_not_stored() -> None:
+    result = calculate_order_price(
+        [LegacyItem("A", Decimal("100.00"), 1)],
+        "regular",
+        0,
+        "NO-SUCH-CODE",
+        "pickup",
+    )
+
+    assert result["promo_code"] is None
+    assert result["total"] == Decimal("120.00")
