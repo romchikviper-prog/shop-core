@@ -191,29 +191,80 @@ def _final_total(
     return _money(discounted + tax + delivery_cost)
 
 
-def _build_report(
-    *,
+@dataclass(frozen=True, slots=True)
+class PricingRequest:
+    items: list[LegacyItem]
+    customer_type: str
+    loyalty_years: int
+    promo_code: str | None
+    delivery: str
+
+
+@dataclass(frozen=True, slots=True)
+class PricingBreakdown:
+    subtotal: Decimal
+    quantity_discount: Decimal
+    coupon_discount: Decimal
+    loyalty_discount: Decimal
+    tax: Decimal
+    delivery_cost: Decimal
+    total: Decimal
+    promo_code: str | None
+    customer_type: str
+
+
+def _discounted(
     subtotal: Decimal,
     quantity_discount: Decimal,
     coupon_discount: Decimal,
     loyalty_discount: Decimal,
-    tax: Decimal,
-    delivery_cost: Decimal,
-    total: Decimal,
-    promo_code: str | None,
-    customer_type: str,
-) -> dict[str, object]:
+) -> Decimal:
+    return _money(
+        subtotal - quantity_discount - coupon_discount - loyalty_discount
+    )
+
+
+def _build_report(breakdown: PricingBreakdown) -> dict[str, object]:
     return {
-        "subtotal": subtotal,
-        "quantity_discount": quantity_discount,
-        "coupon_discount": coupon_discount,
-        "loyalty_discount": loyalty_discount,
-        "tax": tax,
-        "delivery": delivery_cost,
-        "total": total,
-        "promo_code": promo_code,
-        "customer_type": customer_type,
+        "subtotal": breakdown.subtotal,
+        "quantity_discount": breakdown.quantity_discount,
+        "coupon_discount": breakdown.coupon_discount,
+        "loyalty_discount": breakdown.loyalty_discount,
+        "tax": breakdown.tax,
+        "delivery": breakdown.delivery_cost,
+        "total": breakdown.total,
+        "promo_code": breakdown.promo_code,
+        "customer_type": breakdown.customer_type,
     }
+
+
+def calculate_price(request: PricingRequest) -> dict[str, object]:
+    subtotal, total_qty = _subtotal(request.items)
+    quantity_discount = _quantity_discount(subtotal, total_qty)
+    coupon_discount = _coupon_discount(subtotal, request.promo_code)
+    loyalty_discount = _loyalty_discount(
+        subtotal, request.customer_type, request.loyalty_years
+    )
+    discounted = _discounted(
+        subtotal, quantity_discount, coupon_discount, loyalty_discount
+    )
+    tax = _tax(discounted)
+    delivery_cost = _delivery_cost(request.delivery, discounted)
+    total = _final_total(discounted, tax, delivery_cost)
+
+    return _build_report(
+        PricingBreakdown(
+            subtotal=subtotal,
+            quantity_discount=quantity_discount,
+            coupon_discount=coupon_discount,
+            loyalty_discount=loyalty_discount,
+            tax=tax,
+            delivery_cost=delivery_cost,
+            total=total,
+            promo_code=request.promo_code,
+            customer_type=request.customer_type,
+        )
+    )
 
 
 def calculate_order_price(
@@ -223,26 +274,12 @@ def calculate_order_price(
     promo_code: str | None,
     delivery: str,
 ) -> dict[str, object]:
-    subtotal, total_qty = _subtotal(items)
-    quantity_discount = _quantity_discount(subtotal, total_qty)
-    coupon_discount = _coupon_discount(subtotal, promo_code)
-    loyalty_discount = _loyalty_discount(subtotal, customer_type, loyalty_years)
-
-    discounted = _money(
-        subtotal - quantity_discount - coupon_discount - loyalty_discount
-    )
-    tax = _tax(discounted)
-    delivery_cost = _delivery_cost(delivery, discounted)
-    total = _final_total(discounted, tax, delivery_cost)
-
-    return _build_report(
-        subtotal=subtotal,
-        quantity_discount=quantity_discount,
-        coupon_discount=coupon_discount,
-        loyalty_discount=loyalty_discount,
-        tax=tax,
-        delivery_cost=delivery_cost,
-        total=total,
-        promo_code=promo_code,
-        customer_type=customer_type,
+    return calculate_price(
+        PricingRequest(
+            items=items,
+            customer_type=customer_type,
+            loyalty_years=loyalty_years,
+            promo_code=promo_code,
+            delivery=delivery,
+        )
     )
