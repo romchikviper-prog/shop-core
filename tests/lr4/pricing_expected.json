@@ -559,5 +559,16 @@
     "total": "1200.00",
     "promo_code": null,
     "customer_type": "regular"
+  },
+  "unknown_customer": {
+    "subtotal": "100.00",
+    "quantity_discount": "0.00",
+    "coupon_discount": "0.00",
+    "loyalty_discount": "0.00",
+    "tax": "20.00",
+    "delivery": "0.00",
+    "total": "120.00",
+    "promo_code": null,
+    "customer_type": "vip"
   }
 }

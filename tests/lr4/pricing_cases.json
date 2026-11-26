@@ -726,5 +726,19 @@
     "loyalty_years": 0,
     "promo_code": null,
     "delivery": "courier"
+  },
+  {
+    "id": "unknown_customer",
+    "items": [
+      {
+        "name": "A",
+        "price": "100.00",
+        "quantity": 1
+      }
+    ],
+    "customer_type": "vip",
+    "loyalty_years": 0,
+    "promo_code": null,
+    "delivery": "pickup"
   }
 ]
