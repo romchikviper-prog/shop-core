@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "shop-core"
 version = "0.1.0"
-description = "Ядро домену інтернет-магазину електроніки (ЛР1, варіант 2)"
+description = "Ядро домену інтернет-магазину електроніки (ЛР1–ЛР3, варіант 2)"
 requires-python = ">=3.12"
 dependencies = []
 
