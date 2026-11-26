@@ -37,6 +37,26 @@ def _subtotal(items: list[LegacyItem]) -> tuple[Decimal, int]:
     return _money(subtotal), total_qty
 
 
+@dataclass(frozen=True, slots=True)
+class QuantityRule:
+    min_quantity: int
+    rate: Decimal
+
+
+QUANTITY_RULES: tuple[QuantityRule, ...] = (
+    QuantityRule(min_quantity=50, rate=Decimal("0.15")),
+    QuantityRule(min_quantity=20, rate=Decimal("0.10")),
+    QuantityRule(min_quantity=10, rate=Decimal("0.05")),
+)
+
+
+def _quantity_discount(subtotal: Decimal, total_qty: int) -> Decimal:
+    for rule in QUANTITY_RULES:
+        if total_qty >= rule.min_quantity:
+            return _money(subtotal * rule.rate)
+    return ZERO
+
+
 def calculate_order_price(
     items: list[LegacyItem],
     customer_type: str,
@@ -45,16 +65,7 @@ def calculate_order_price(
     delivery: str,
 ) -> dict[str, object]:
     subtotal, total_qty = _subtotal(items)
-
-    if total_qty >= 50:
-        quantity_discount = subtotal * Decimal("0.15")
-    elif total_qty >= 20:
-        quantity_discount = subtotal * Decimal("0.10")
-    elif total_qty >= 10:
-        quantity_discount = subtotal * Decimal("0.05")
-    else:
-        quantity_discount = ZERO
-    quantity_discount = _money(quantity_discount)
+    quantity_discount = _quantity_discount(subtotal, total_qty)
 
     coupon_discount = ZERO
     if promo_code is not None:
