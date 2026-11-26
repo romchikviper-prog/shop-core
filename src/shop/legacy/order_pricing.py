@@ -14,6 +14,7 @@ from enum import StrEnum
 MONEY_STEP = Decimal("0.01")
 ZERO = Decimal("0.00")
 ROUNDING = ROUND_HALF_UP
+TAX_RATE = Decimal("0.20")
 
 
 @dataclass(frozen=True, slots=True)
@@ -97,57 +98,112 @@ def _coupon_discount(subtotal: Decimal, promo_code: str | None) -> Decimal:
     return _money(subtotal * rule.percent + rule.fixed)
 
 
-def calculate_order_price(
-    items: list[LegacyItem],
-    customer_type: str,
-    loyalty_years: int,
+class CustomerStatus(StrEnum):
+    REGULAR = "regular"
+    SILVER = "silver"
+    GOLD = "gold"
+    PLATINUM = "platinum"
+
+
+LOYALTY_RATES: dict[CustomerStatus, Decimal] = {
+    CustomerStatus.REGULAR: ZERO,
+    CustomerStatus.SILVER: Decimal("0.03"),
+    CustomerStatus.GOLD: Decimal("0.05"),
+    CustomerStatus.PLATINUM: Decimal("0.07"),
+}
+
+
+@dataclass(frozen=True, slots=True)
+class LoyaltyYearsRule:
+    min_years: int
+    bonus: Decimal
+
+
+LOYALTY_YEARS_RULES: tuple[LoyaltyYearsRule, ...] = (
+    LoyaltyYearsRule(min_years=10, bonus=Decimal("0.03")),
+    LoyaltyYearsRule(min_years=5, bonus=Decimal("0.02")),
+)
+
+
+def _parse_customer_status(customer_type: str) -> CustomerStatus:
+    try:
+        return CustomerStatus(customer_type)
+    except ValueError:
+        return CustomerStatus.REGULAR
+
+
+def _loyalty_discount(
+    subtotal: Decimal, customer_type: str, loyalty_years: int
+) -> Decimal:
+    status = _parse_customer_status(customer_type)
+    rate = LOYALTY_RATES[status]
+    for rule in LOYALTY_YEARS_RULES:
+        if loyalty_years >= rule.min_years:
+            rate = rate + rule.bonus
+            break
+    return _money(subtotal * rate)
+
+
+class DeliveryMethod(StrEnum):
+    PICKUP = "pickup"
+    COURIER = "courier"
+    EXPRESS = "express"
+
+
+@dataclass(frozen=True, slots=True)
+class DeliveryRule:
+    price: Decimal
+    free_from: Decimal | None
+
+
+DELIVERY_RULES: dict[DeliveryMethod, DeliveryRule] = {
+    DeliveryMethod.PICKUP: DeliveryRule(price=ZERO, free_from=None),
+    DeliveryMethod.COURIER: DeliveryRule(
+        price=Decimal("99.00"), free_from=Decimal("1000.00")
+    ),
+    DeliveryMethod.EXPRESS: DeliveryRule(
+        price=Decimal("199.00"), free_from=Decimal("2000.00")
+    ),
+}
+
+
+def _parse_delivery(delivery: str) -> DeliveryMethod:
+    try:
+        return DeliveryMethod(delivery)
+    except ValueError:
+        return DeliveryMethod.PICKUP
+
+
+def _delivery_cost(delivery: str, discounted: Decimal) -> Decimal:
+    rule = DELIVERY_RULES[_parse_delivery(delivery)]
+    if rule.free_from is not None and discounted >= rule.free_from:
+        return ZERO
+    return rule.price
+
+
+def _tax(discounted: Decimal) -> Decimal:
+    return _money(discounted * TAX_RATE)
+
+
+def _final_total(
+    discounted: Decimal, tax: Decimal, delivery_cost: Decimal
+) -> Decimal:
+    return _money(discounted + tax + delivery_cost)
+
+
+def _build_report(
+    *,
+    subtotal: Decimal,
+    quantity_discount: Decimal,
+    coupon_discount: Decimal,
+    loyalty_discount: Decimal,
+    tax: Decimal,
+    delivery_cost: Decimal,
+    total: Decimal,
     promo_code: str | None,
-    delivery: str,
+    customer_type: str,
 ) -> dict[str, object]:
-    subtotal, total_qty = _subtotal(items)
-    quantity_discount = _quantity_discount(subtotal, total_qty)
-    coupon_discount = _coupon_discount(subtotal, promo_code)
-
-    loyalty_discount = ZERO
-    if customer_type == "silver":
-        loyalty_discount = subtotal * Decimal("0.03")
-    elif customer_type == "gold":
-        loyalty_discount = subtotal * Decimal("0.05")
-    elif customer_type == "platinum":
-        loyalty_discount = subtotal * Decimal("0.07")
-    else:
-        loyalty_discount = ZERO
-
-    if loyalty_years >= 10:
-        loyalty_discount = loyalty_discount + subtotal * Decimal("0.03")
-    elif loyalty_years >= 5:
-        loyalty_discount = loyalty_discount + subtotal * Decimal("0.02")
-
-    loyalty_discount = _money(loyalty_discount)
-
-    discounted = subtotal - quantity_discount - coupon_discount - loyalty_discount
-    discounted = _money(discounted)
-
-    tax = _money(discounted * Decimal("0.20"))
-
-    if delivery == "pickup":
-        delivery_cost = ZERO
-    elif delivery == "courier":
-        if discounted >= Decimal("1000.00"):
-            delivery_cost = ZERO
-        else:
-            delivery_cost = Decimal("99.00")
-    elif delivery == "express":
-        if discounted >= Decimal("2000.00"):
-            delivery_cost = ZERO
-        else:
-            delivery_cost = Decimal("199.00")
-    else:
-        delivery_cost = ZERO
-
-    total = _money(discounted + tax + delivery_cost)
-
-    result: dict[str, object] = {
+    return {
         "subtotal": subtotal,
         "quantity_discount": quantity_discount,
         "coupon_discount": coupon_discount,
@@ -158,4 +214,35 @@ def calculate_order_price(
         "promo_code": promo_code,
         "customer_type": customer_type,
     }
-    return result
+
+
+def calculate_order_price(
+    items: list[LegacyItem],
+    customer_type: str,
+    loyalty_years: int,
+    promo_code: str | None,
+    delivery: str,
+) -> dict[str, object]:
+    subtotal, total_qty = _subtotal(items)
+    quantity_discount = _quantity_discount(subtotal, total_qty)
+    coupon_discount = _coupon_discount(subtotal, promo_code)
+    loyalty_discount = _loyalty_discount(subtotal, customer_type, loyalty_years)
+
+    discounted = _money(
+        subtotal - quantity_discount - coupon_discount - loyalty_discount
+    )
+    tax = _tax(discounted)
+    delivery_cost = _delivery_cost(delivery, discounted)
+    total = _final_total(discounted, tax, delivery_cost)
+
+    return _build_report(
+        subtotal=subtotal,
+        quantity_discount=quantity_discount,
+        coupon_discount=coupon_discount,
+        loyalty_discount=loyalty_discount,
+        tax=tax,
+        delivery_cost=delivery_cost,
+        total=total,
+        promo_code=promo_code,
+        customer_type=customer_type,
+    )
