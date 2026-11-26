@@ -1,0 +1,73 @@
+{
+  "label": "before",
+  "target": "src/shop/legacy/order_pricing.py",
+  "tools": {
+    "complexity": "radon 6.0.1 (cc -j)",
+    "length": "ast (фізичні рядки функції)",
+    "coverage": "coverage.py 7.17.5 (--branch)",
+    "linter": "ruff 0.17.6 (C901, PLR0912, PLR0915, PLR2004, PLR0913)"
+  },
+  "blocks": 2,
+  "functions": 1,
+  "max_cyclomatic_complexity": 23,
+  "average_cyclomatic_complexity": 12,
+  "function_complexities": {
+    "calculate_order_price": 23
+  },
+  "longest_function": "calculate_order_price",
+  "longest_function_lines": 91,
+  "function_lengths": {
+    "calculate_order_price": 91
+  },
+  "loc": 111,
+  "sloc": 88,
+  "coverage_lines_percent": 100.0,
+  "coverage_branches_percent": 100.0,
+  "lines_total": 67,
+  "lines_covered": 67,
+  "branches_total": 44,
+  "branches_covered": 44,
+  "linter_warnings": 8,
+  "rules": [
+    {
+      "code": "C901",
+      "message": "`calculate_order_price` is too complex (23 > 10)",
+      "line": 21
+    },
+    {
+      "code": "PLR0912",
+      "message": "Too many branches (27 > 12)",
+      "line": 21
+    },
+    {
+      "code": "PLR0915",
+      "message": "Too many statements (61 > 50)",
+      "line": 21
+    },
+    {
+      "code": "PLR2004",
+      "message": "Magic value used in comparison, consider replacing `50` with a constant variable",
+      "line": 38
+    },
+    {
+      "code": "PLR2004",
+      "message": "Magic value used in comparison, consider replacing `20` with a constant variable",
+      "line": 40
+    },
+    {
+      "code": "PLR2004",
+      "message": "Magic value used in comparison, consider replacing `10` with a constant variable",
+      "line": 42
+    },
+    {
+      "code": "PLR2004",
+      "message": "Magic value used in comparison, consider replacing `10` with a constant variable",
+      "line": 71
+    },
+    {
+      "code": "PLR2004",
+      "message": "Magic value used in comparison, consider replacing `5` with a constant variable",
+      "line": 73
+    }
+  ]
+}

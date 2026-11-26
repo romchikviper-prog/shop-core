@@ -9,3 +9,10 @@ build/
 *.egg-info/
 *.docx
 var/
+.coverage
+coverage.json
+htmlcov/
+.ruff_cache/
+.pylint.d/
+.mutmut-cache/
+mutants/

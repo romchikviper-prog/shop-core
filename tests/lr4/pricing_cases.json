@@ -1,0 +1,683 @@
+[
+  {
+    "id": "empty_pickup",
+    "items": [],
+    "customer_type": "regular",
+    "loyalty_years": 0,
+    "promo_code": null,
+    "delivery": "pickup"
+  },
+  {
+    "id": "single_regular_pickup",
+    "items": [
+      {
+        "name": "A",
+        "price": "100.00",
+        "quantity": 1
+      }
+    ],
+    "customer_type": "regular",
+    "loyalty_years": 0,
+    "promo_code": null,
+    "delivery": "pickup"
+  },
+  {
+    "id": "single_regular_courier",
+    "items": [
+      {
+        "name": "A",
+        "price": "100.00",
+        "quantity": 1
+      }
+    ],
+    "customer_type": "regular",
+    "loyalty_years": 0,
+    "promo_code": null,
+    "delivery": "courier"
+  },
+  {
+    "id": "single_regular_express",
+    "items": [
+      {
+        "name": "A",
+        "price": "100.00",
+        "quantity": 1
+      }
+    ],
+    "customer_type": "regular",
+    "loyalty_years": 0,
+    "promo_code": null,
+    "delivery": "express"
+  },
+  {
+    "id": "single_unknown_delivery",
+    "items": [
+      {
+        "name": "A",
+        "price": "100.00",
+        "quantity": 1
+      }
+    ],
+    "customer_type": "regular",
+    "loyalty_years": 0,
+    "promo_code": null,
+    "delivery": "drone"
+  },
+  {
+    "id": "zero_quantity_pickup",
+    "items": [
+      {
+        "name": "A",
+        "price": "100.00",
+        "quantity": 0
+      }
+    ],
+    "customer_type": "regular",
+    "loyalty_years": 0,
+    "promo_code": null,
+    "delivery": "pickup"
+  },
+  {
+    "id": "negative_quantity_pickup",
+    "items": [
+      {
+        "name": "A",
+        "price": "100.00",
+        "quantity": -2
+      }
+    ],
+    "customer_type": "regular",
+    "loyalty_years": 0,
+    "promo_code": null,
+    "delivery": "pickup"
+  },
+  {
+    "id": "qty_9_regular_pickup",
+    "items": [
+      {
+        "name": "A",
+        "price": "100.00",
+        "quantity": 9
+      }
+    ],
+    "customer_type": "regular",
+    "loyalty_years": 0,
+    "promo_code": null,
+    "delivery": "pickup"
+  },
+  {
+    "id": "qty_10_regular_pickup",
+    "items": [
+      {
+        "name": "A",
+        "price": "100.00",
+        "quantity": 10
+      }
+    ],
+    "customer_type": "regular",
+    "loyalty_years": 0,
+    "promo_code": null,
+    "delivery": "pickup"
+  },
+  {
+    "id": "qty_19_regular_pickup",
+    "items": [
+      {
+        "name": "A",
+        "price": "100.00",
+        "quantity": 19
+      }
+    ],
+    "customer_type": "regular",
+    "loyalty_years": 0,
+    "promo_code": null,
+    "delivery": "pickup"
+  },
+  {
+    "id": "qty_20_regular_pickup",
+    "items": [
+      {
+        "name": "A",
+        "price": "100.00",
+        "quantity": 20
+      }
+    ],
+    "customer_type": "regular",
+    "loyalty_years": 0,
+    "promo_code": null,
+    "delivery": "pickup"
+  },
+  {
+    "id": "qty_49_regular_pickup",
+    "items": [
+      {
+        "name": "A",
+        "price": "100.00",
+        "quantity": 49
+      }
+    ],
+    "customer_type": "regular",
+    "loyalty_years": 0,
+    "promo_code": null,
+    "delivery": "pickup"
+  },
+  {
+    "id": "qty_50_regular_pickup",
+    "items": [
+      {
+        "name": "A",
+        "price": "100.00",
+        "quantity": 50
+      }
+    ],
+    "customer_type": "regular",
+    "loyalty_years": 0,
+    "promo_code": null,
+    "delivery": "pickup"
+  },
+  {
+    "id": "coupon_save10_500",
+    "items": [
+      {
+        "name": "B",
+        "price": "250.00",
+        "quantity": 2
+      }
+    ],
+    "customer_type": "regular",
+    "loyalty_years": 0,
+    "promo_code": "SAVE10",
+    "delivery": "pickup"
+  },
+  {
+    "id": "coupon_save10_below",
+    "items": [
+      {
+        "name": "A",
+        "price": "100.00",
+        "quantity": 4
+      }
+    ],
+    "customer_type": "regular",
+    "loyalty_years": 0,
+    "promo_code": "SAVE10",
+    "delivery": "pickup"
+  },
+  {
+    "id": "coupon_save20_1000",
+    "items": [
+      {
+        "name": "D",
+        "price": "1000.00",
+        "quantity": 1
+      }
+    ],
+    "customer_type": "regular",
+    "loyalty_years": 0,
+    "promo_code": "SAVE20",
+    "delivery": "pickup"
+  },
+  {
+    "id": "coupon_save20_below",
+    "items": [
+      {
+        "name": "A",
+        "price": "100.00",
+        "quantity": 9
+      }
+    ],
+    "customer_type": "regular",
+    "loyalty_years": 0,
+    "promo_code": "SAVE20",
+    "delivery": "pickup"
+  },
+  {
+    "id": "coupon_minus100_1200",
+    "items": [
+      {
+        "name": "E",
+        "price": "600.00",
+        "quantity": 2
+      }
+    ],
+    "customer_type": "regular",
+    "loyalty_years": 0,
+    "promo_code": "MINUS100",
+    "delivery": "pickup"
+  },
+  {
+    "id": "coupon_minus100_below",
+    "items": [
+      {
+        "name": "B",
+        "price": "250.00",
+        "quantity": 2
+      }
+    ],
+    "customer_type": "regular",
+    "loyalty_years": 0,
+    "promo_code": "MINUS100",
+    "delivery": "pickup"
+  },
+  {
+    "id": "coupon_unknown",
+    "items": [
+      {
+        "name": "A",
+        "price": "100.00",
+        "quantity": 1
+      }
+    ],
+    "customer_type": "regular",
+    "loyalty_years": 0,
+    "promo_code": "UNKNOWN",
+    "delivery": "pickup"
+  },
+  {
+    "id": "coupon_empty_string",
+    "items": [
+      {
+        "name": "A",
+        "price": "100.00",
+        "quantity": 1
+      }
+    ],
+    "customer_type": "regular",
+    "loyalty_years": 0,
+    "promo_code": "",
+    "delivery": "pickup"
+  },
+  {
+    "id": "silver_0",
+    "items": [
+      {
+        "name": "A",
+        "price": "100.00",
+        "quantity": 1
+      }
+    ],
+    "customer_type": "silver",
+    "loyalty_years": 0,
+    "promo_code": null,
+    "delivery": "pickup"
+  },
+  {
+    "id": "gold_0",
+    "items": [
+      {
+        "name": "A",
+        "price": "100.00",
+        "quantity": 1
+      }
+    ],
+    "customer_type": "gold",
+    "loyalty_years": 0,
+    "promo_code": null,
+    "delivery": "pickup"
+  },
+  {
+    "id": "platinum_0",
+    "items": [
+      {
+        "name": "A",
+        "price": "100.00",
+        "quantity": 1
+      }
+    ],
+    "customer_type": "platinum",
+    "loyalty_years": 0,
+    "promo_code": null,
+    "delivery": "pickup"
+  },
+  {
+    "id": "regular_5_years",
+    "items": [
+      {
+        "name": "A",
+        "price": "100.00",
+        "quantity": 1
+      }
+    ],
+    "customer_type": "regular",
+    "loyalty_years": 5,
+    "promo_code": null,
+    "delivery": "pickup"
+  },
+  {
+    "id": "regular_10_years",
+    "items": [
+      {
+        "name": "A",
+        "price": "100.00",
+        "quantity": 1
+      }
+    ],
+    "customer_type": "regular",
+    "loyalty_years": 10,
+    "promo_code": null,
+    "delivery": "pickup"
+  },
+  {
+    "id": "silver_5_years",
+    "items": [
+      {
+        "name": "A",
+        "price": "100.00",
+        "quantity": 1
+      }
+    ],
+    "customer_type": "silver",
+    "loyalty_years": 5,
+    "promo_code": null,
+    "delivery": "pickup"
+  },
+  {
+    "id": "platinum_10_years",
+    "items": [
+      {
+        "name": "A",
+        "price": "100.00",
+        "quantity": 1
+      }
+    ],
+    "customer_type": "platinum",
+    "loyalty_years": 10,
+    "promo_code": null,
+    "delivery": "pickup"
+  },
+  {
+    "id": "qty10_gold10_years",
+    "items": [
+      {
+        "name": "A",
+        "price": "100.00",
+        "quantity": 10
+      }
+    ],
+    "customer_type": "gold",
+    "loyalty_years": 10,
+    "promo_code": null,
+    "delivery": "pickup"
+  },
+  {
+    "id": "stack_qty10_save20_regular",
+    "items": [
+      {
+        "name": "A",
+        "price": "100.00",
+        "quantity": 10
+      }
+    ],
+    "customer_type": "regular",
+    "loyalty_years": 0,
+    "promo_code": "SAVE20",
+    "delivery": "pickup"
+  },
+  {
+    "id": "stack_qty10_save20_gold",
+    "items": [
+      {
+        "name": "A",
+        "price": "100.00",
+        "quantity": 10
+      }
+    ],
+    "customer_type": "gold",
+    "loyalty_years": 0,
+    "promo_code": "SAVE20",
+    "delivery": "pickup"
+  },
+  {
+    "id": "stack_qty50_save10_gold_courier",
+    "items": [
+      {
+        "name": "F",
+        "price": "100.00",
+        "quantity": 50
+      }
+    ],
+    "customer_type": "gold",
+    "loyalty_years": 0,
+    "promo_code": "SAVE10",
+    "delivery": "courier"
+  },
+  {
+    "id": "stack_qty50_save20_express",
+    "items": [
+      {
+        "name": "F",
+        "price": "100.00",
+        "quantity": 50
+      }
+    ],
+    "customer_type": "regular",
+    "loyalty_years": 0,
+    "promo_code": "SAVE20",
+    "delivery": "express"
+  },
+  {
+    "id": "express_paid_1000",
+    "items": [
+      {
+        "name": "D",
+        "price": "1000.00",
+        "quantity": 1
+      }
+    ],
+    "customer_type": "regular",
+    "loyalty_years": 0,
+    "promo_code": null,
+    "delivery": "express"
+  },
+  {
+    "id": "express_paid_after_coupon",
+    "items": [
+      {
+        "name": "D",
+        "price": "1000.00",
+        "quantity": 1
+      }
+    ],
+    "customer_type": "regular",
+    "loyalty_years": 0,
+    "promo_code": "SAVE20",
+    "delivery": "express"
+  },
+  {
+    "id": "courier_free_1200",
+    "items": [
+      {
+        "name": "E",
+        "price": "600.00",
+        "quantity": 2
+      }
+    ],
+    "customer_type": "regular",
+    "loyalty_years": 0,
+    "promo_code": null,
+    "delivery": "courier"
+  },
+  {
+    "id": "courier_paid_after_coupon",
+    "items": [
+      {
+        "name": "E",
+        "price": "600.00",
+        "quantity": 2
+      }
+    ],
+    "customer_type": "regular",
+    "loyalty_years": 0,
+    "promo_code": "SAVE20",
+    "delivery": "courier"
+  },
+  {
+    "id": "courier_paid_below",
+    "items": [
+      {
+        "name": "B",
+        "price": "250.00",
+        "quantity": 2
+      }
+    ],
+    "customer_type": "regular",
+    "loyalty_years": 0,
+    "promo_code": "MINUS100",
+    "delivery": "courier"
+  },
+  {
+    "id": "multi_items_800",
+    "items": [
+      {
+        "name": "A",
+        "price": "100.00",
+        "quantity": 3
+      },
+      {
+        "name": "B",
+        "price": "250.00",
+        "quantity": 2
+      }
+    ],
+    "customer_type": "regular",
+    "loyalty_years": 0,
+    "promo_code": null,
+    "delivery": "pickup"
+  },
+  {
+    "id": "multi_items_1500_qty20",
+    "items": [
+      {
+        "name": "A",
+        "price": "100.00",
+        "quantity": 10
+      },
+      {
+        "name": "C",
+        "price": "50.00",
+        "quantity": 10
+      }
+    ],
+    "customer_type": "regular",
+    "loyalty_years": 0,
+    "promo_code": null,
+    "delivery": "pickup"
+  },
+  {
+    "id": "mixed_zero_quantity",
+    "items": [
+      {
+        "name": "A",
+        "price": "100.00",
+        "quantity": 1
+      },
+      {
+        "name": "B",
+        "price": "250.00",
+        "quantity": 0
+      }
+    ],
+    "customer_type": "regular",
+    "loyalty_years": 0,
+    "promo_code": null,
+    "delivery": "pickup"
+  },
+  {
+    "id": "rounding_tax",
+    "items": [
+      {
+        "name": "R",
+        "price": "33.33",
+        "quantity": 3
+      }
+    ],
+    "customer_type": "regular",
+    "loyalty_years": 0,
+    "promo_code": null,
+    "delivery": "pickup"
+  },
+  {
+    "id": "rounding_discount",
+    "items": [
+      {
+        "name": "R",
+        "price": "99.99",
+        "quantity": 10
+      }
+    ],
+    "customer_type": "regular",
+    "loyalty_years": 0,
+    "promo_code": null,
+    "delivery": "pickup"
+  },
+  {
+    "id": "coupon_minus100_exact_800",
+    "items": [
+      {
+        "name": "A",
+        "price": "100.00",
+        "quantity": 8
+      }
+    ],
+    "customer_type": "regular",
+    "loyalty_years": 0,
+    "promo_code": "MINUS100",
+    "delivery": "pickup"
+  },
+  {
+    "id": "coupon_save10_exact_500",
+    "items": [
+      {
+        "name": "A",
+        "price": "100.00",
+        "quantity": 5
+      }
+    ],
+    "customer_type": "regular",
+    "loyalty_years": 0,
+    "promo_code": "SAVE10",
+    "delivery": "pickup"
+  },
+  {
+    "id": "coupon_save20_exact_1000",
+    "items": [
+      {
+        "name": "A",
+        "price": "100.00",
+        "quantity": 10
+      }
+    ],
+    "customer_type": "regular",
+    "loyalty_years": 0,
+    "promo_code": "SAVE20",
+    "delivery": "pickup"
+  },
+  {
+    "id": "zero_price_courier",
+    "items": [
+      {
+        "name": "Z",
+        "price": "0.00",
+        "quantity": 1
+      }
+    ],
+    "customer_type": "regular",
+    "loyalty_years": 0,
+    "promo_code": null,
+    "delivery": "courier"
+  },
+  {
+    "id": "negative_price_pickup",
+    "items": [
+      {
+        "name": "N",
+        "price": "-100.00",
+        "quantity": 1
+      }
+    ],
+    "customer_type": "regular",
+    "loyalty_years": 0,
+    "promo_code": null,
+    "delivery": "pickup"
+  }
+]
