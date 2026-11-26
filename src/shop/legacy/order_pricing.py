@@ -192,6 +192,27 @@ def _final_total(
 
 
 @dataclass(frozen=True, slots=True)
+class DiscountSelection:
+    quantity: Decimal
+    coupon: Decimal
+    loyalty: Decimal
+
+
+def _apply_largest_discount(
+    quantity_discount: Decimal,
+    coupon_discount: Decimal,
+    loyalty_discount: Decimal,
+) -> DiscountSelection:
+    candidates = (quantity_discount, coupon_discount, loyalty_discount)
+    largest = max(candidates)
+    selected = [ZERO, ZERO, ZERO]
+    selected[candidates.index(largest)] = largest
+    return DiscountSelection(
+        quantity=selected[0], coupon=selected[1], loyalty=selected[2]
+    )
+
+
+@dataclass(frozen=True, slots=True)
 class PricingRequest:
     items: list[LegacyItem]
     customer_type: str
@@ -240,25 +261,13 @@ def _build_report(breakdown: PricingBreakdown) -> dict[str, object]:
 
 def calculate_price(request: PricingRequest) -> dict[str, object]:
     subtotal, total_qty = _subtotal(request.items)
-    quantity_discount = _quantity_discount(subtotal, total_qty)
-    coupon_discount = _coupon_discount(subtotal, request.promo_code)
-    loyalty_discount = _loyalty_discount(
-        subtotal, request.customer_type, request.loyalty_years
+    discounts = _apply_largest_discount(
+        _quantity_discount(subtotal, total_qty),
+        _coupon_discount(subtotal, request.promo_code),
+        _loyalty_discount(subtotal, request.customer_type, request.loyalty_years),
     )
-
-    largest = max(quantity_discount, coupon_discount, loyalty_discount)
-    if largest == quantity_discount:
-        coupon_discount = ZERO
-        loyalty_discount = ZERO
-    elif largest == coupon_discount:
-        quantity_discount = ZERO
-        loyalty_discount = ZERO
-    else:
-        quantity_discount = ZERO
-        coupon_discount = ZERO
-
     discounted = _discounted(
-        subtotal, quantity_discount, coupon_discount, loyalty_discount
+        subtotal, discounts.quantity, discounts.coupon, discounts.loyalty
     )
     tax = _tax(discounted)
     delivery_cost = _delivery_cost(request.delivery, discounted)
@@ -267,9 +276,9 @@ def calculate_price(request: PricingRequest) -> dict[str, object]:
     return _build_report(
         PricingBreakdown(
             subtotal=subtotal,
-            quantity_discount=quantity_discount,
-            coupon_discount=coupon_discount,
-            loyalty_discount=loyalty_discount,
+            quantity_discount=discounts.quantity,
+            coupon_discount=discounts.coupon,
+            loyalty_discount=discounts.loyalty,
             tax=tax,
             delivery_cost=delivery_cost,
             total=total,
