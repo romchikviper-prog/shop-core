@@ -212,12 +212,8 @@ def _apply_largest_discount(
     )
 
 
-def _has_any_discount(discounts: DiscountSelection) -> bool:
-    return (
-        discounts.quantity != ZERO
-        or discounts.coupon != ZERO
-        or discounts.loyalty != ZERO
-    )
+def _is_coupon_applied(discounts: DiscountSelection) -> bool:
+    return discounts.coupon != ZERO
 
 
 @dataclass(frozen=True, slots=True)
@@ -280,7 +276,9 @@ def calculate_price(request: PricingRequest) -> dict[str, object]:
     tax = _tax(discounted)
     delivery_cost = _delivery_cost(request.delivery, discounted)
     total = _final_total(discounted, tax, delivery_cost)
-    effective_promo = request.promo_code if discounts.coupon != ZERO else None
+    effective_promo = (
+        request.promo_code if _is_coupon_applied(discounts) else None
+    )
 
     return _build_report(
         PricingBreakdown(
