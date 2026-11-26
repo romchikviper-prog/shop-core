@@ -1,0 +1,21 @@
+F                                                                        [100%]
+================================== FAILURES ===================================
+____________________ test_only_largest_discount_is_applied ____________________
+
+    def test_only_largest_discount_is_applied() -> None:
+        result = calculate_order_price(
+            [LegacyItem("A", Decimal("100.00"), 10)],
+            "gold",
+            0,
+            "SAVE20",
+            "pickup",
+        )
+    
+>       assert result["quantity_discount"] == Decimal("0.00")
+E       AssertionError: assert Decimal('50.00') == Decimal('0.00')
+E        +  where Decimal('0.00') = Decimal('0.00')
+
+tests\test_legacy_pricing_tdd.py:23: AssertionError
+=========================== short test summary info ===========================
+FAILED tests/test_legacy_pricing_tdd.py::test_only_largest_discount_is_applied
+1 failed in 0.10s
