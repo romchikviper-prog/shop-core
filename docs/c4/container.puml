@@ -1,0 +1,26 @@
+@startuml
+!include lib/C4_Container.puml
+
+title Контейнерна діаграма (C4, рівень 2) — інтернет-магазин електроніки
+
+Person(customer, "Покупець", "Обирає товари, оформлює замовлення та оплачує їх")
+Person(manager, "Менеджер магазину", "Керує замовленнями, відправленнями та залишками")
+
+System_Ext(payment, "Платіжний шлюз", "Авторизує та списує кошти; підтримує idempotency key")
+System_Ext(delivery, "Служба доставки", "Створює відправлення та надає трекінг")
+
+System_Boundary(shop, "Інтернет-магазин електроніки") {
+    Container(web, "Web-магазин", "TypeScript, React, SPA", "Каталог, кошик, оформлення замовлення, статус і трекінг")
+    Container(app, "Shop Application", "Python 3.13, FastAPI, модульний монолит", "Доменні модулі Sales, Inventory, Payments; REST API; планувальник трекінгу")
+    ContainerDb(db, "База даних магазину", "PostgreSQL 16", "Замовлення, позиції, залишки, резервування, idempotency keys")
+}
+
+Rel(customer, web, "Користується каталогом і оформленням", "HTTPS")
+Rel(manager, web, "Керує замовленнями", "HTTPS")
+Rel(web, app, "Викликає REST API", "HTTPS/JSON")
+Rel(app, db, "Читає й зберігає агрегати", "SQL/TLS")
+Rel(app, payment, "Списує кошти", "HTTPS/REST, idempotency key")
+Rel(app, delivery, "Створює відправлення, читає трекінг", "HTTPS/REST")
+
+LAYOUT_TOP_DOWN()
+@enduml

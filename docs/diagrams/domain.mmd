@@ -1,0 +1,30 @@
+%%{init: {"theme": "default", "themeVariables": {"fontSize": "20px"}}}%%
+flowchart LR
+    subgraph SALES["Продажі (Sales)"]
+        direction TB
+        CATALOG["Каталог (read model)<br/>SKU, назва, ціна"]
+        ORDER["Агрегат Order<br/>Draft → Placed → Paid → Shipped<br/>Draft/Placed → Cancelled"]
+        COMMANDS["Команди<br/>CreateOrder<br/>AddItem<br/>RemoveItem<br/>PlaceOrder<br/>PayOrder<br/>ShipOrder<br/>CancelOrder"]
+        EVENTS["Події<br/>OrderCreated<br/>OrderPlaced<br/>OrderPaid<br/>OrderShipped<br/>OrderCancelled"]
+        COMMANDS --> ORDER --> EVENTS
+        CATALOG -->|"AddItem фіксує ціну"| ORDER
+    end
+
+    subgraph STOCK["Склад (Inventory)"]
+        direction TB
+        STOCK_CMD["ReserveStock<br/>ReleaseStock"]
+        STOCK_AGG["Агрегат StockItem<br/>available / reserved"]
+        STOCK_EVT["StockReserved<br/>StockReservationFailed"]
+        STOCK_CMD --> STOCK_AGG --> STOCK_EVT
+    end
+
+    subgraph PAY["Платежі (Payments)"]
+        direction TB
+        PORT["Порт PaymentGateway"]
+        ADAPTER["Adapter LegacyPayAdapter<br/>(Anti-Corruption Layer)"]
+        GATEWAY["Зовнішній платіжний шлюз"]
+        PORT --> ADAPTER --> GATEWAY
+    end
+
+    ORDER -- "ReserveStock<br/>Customer–Supplier" --> STOCK_CMD
+    ORDER -- "charge<br/>Customer–Supplier" --> PORT
