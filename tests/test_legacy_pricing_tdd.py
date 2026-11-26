@@ -38,3 +38,18 @@ def test_zero_effect_promo_is_not_stored() -> None:
 
     assert result["promo_code"] is None
     assert result["total"] == Decimal("120.00")
+
+
+def test_losing_promo_is_not_stored() -> None:
+    result = calculate_order_price(
+        [LegacyItem("A", Decimal("100.00"), 50)],
+        "regular",
+        0,
+        "SAVE10",
+        "pickup",
+    )
+
+    assert result["quantity_discount"] == Decimal("750.00")
+    assert result["coupon_discount"] == Decimal("0.00")
+    assert result["promo_code"] is None
+    assert result["total"] == Decimal("5100.00")
