@@ -280,9 +280,7 @@ def calculate_price(request: PricingRequest) -> dict[str, object]:
     tax = _tax(discounted)
     delivery_cost = _delivery_cost(request.delivery, discounted)
     total = _final_total(discounted, tax, delivery_cost)
-    effective_promo = (
-        request.promo_code if _has_any_discount(discounts) else None
-    )
+    effective_promo = request.promo_code if discounts.coupon != ZERO else None
 
     return _build_report(
         PricingBreakdown(

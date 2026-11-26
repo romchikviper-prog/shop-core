@@ -348,7 +348,7 @@
     "tax": "850.00",
     "delivery": "0.00",
     "total": "5100.00",
-    "promo_code": "SAVE10",
+    "promo_code": null,
     "customer_type": "gold"
   },
   "stack_qty50_save20_express": {
