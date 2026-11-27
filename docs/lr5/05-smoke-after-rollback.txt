@@ -1,0 +1,2 @@
+$ kubectl -n shop exec deployment/shop-core -- python -c "..."
+{"status":"ok","version":"0.1.0+1115724","git_sha":"1115724"}

@@ -1,0 +1,25 @@
+$ kubectl -n shop rollout undo deployment/shop-core
+Warning: resource deployments/shop-core was previously managed with 'kubectl apply'. Rolling back will not update the kubectl.kubernetes.io/last-applied-configuration annotation, which may cause unexpected behavior on future 'kubectl apply' operations. Consider using 'kubectl apply' with your previous configuration file instead.
+deployment.apps/shop-core rolled back
+
+$ kubectl -n shop rollout status deployment/shop-core --timeout=120s
+deployment "shop-core" successfully rolled out
+
+$ kubectl -n shop get deploy,rs,pods -o wide
+NAME                        READY   UP-TO-DATE   AVAILABLE   AGE   CONTAINERS   IMAGES              SELECTOR
+deployment.apps/shop-core   2/2     2            2           50s   shop-core    shop-core:1115724   app.kubernetes.io/name=shop-core
+
+NAME                                   DESIRED   CURRENT   READY   AGE   CONTAINERS   IMAGES                      SELECTOR
+replicaset.apps/shop-core-5985d8568c   2         2         2       50s   shop-core    shop-core:1115724           app.kubernetes.io/name=shop-core,pod-template-hash=5985d8568c
+replicaset.apps/shop-core-5cc458956d   0         0         0       42s   shop-core    shop-core:missing-1115724   app.kubernetes.io/name=shop-core,pod-template-hash=5cc458956d
+
+NAME                             READY   STATUS    RESTARTS   AGE   IP           NODE                 NOMINATED NODE   READINESS GATES
+pod/shop-core-5985d8568c-gp25h   1/1     Running   0          50s   10.244.0.8   shop-control-plane   <none>           <none>
+pod/shop-core-5985d8568c-khqxg   1/1     Running   0          50s   10.244.0.7   shop-control-plane   <none>           <none>
+
+$ kubectl -n shop rollout history deployment/shop-core
+deployment.apps/shop-core 
+REVISION  CHANGE-CAUSE
+2         <none>
+3         <none>
+

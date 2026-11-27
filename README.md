@@ -25,21 +25,25 @@
 11. [ЛР2. Паралельне та асинхронне програмування](#11-лр2-паралельне-та-асинхронне-програмування)
 12. [ЛР3. Розподілені взаємодії та стійкість](#12-лр3-розподілені-взаємодії-та-стійкість)
 13. [ЛР4. Рефакторинг, аналіз якості та тестування спадкового модуля](#13-лр4-рефакторинг-аналіз-якості-та-тестування-спадкового-модуля)
+14. [ЛР5. Збірка, контейнери, CI/CD](#14-лр5-збірка-контейнери-cicd)
 
 ## 1. Швидкий старт
 
-Потрібен Python 3.12+ (перевірено на 3.13.0). Залежності — лише для розробки: `pytest`, `mypy`, `PyYAML` (для тесту контракту), `coverage`, `radon`, `ruff`, `pylint`, `pytest-bdd`; `mutmut` запускається через WSL, бо нативний Windows він не підтримує. Самі сервіси працюють на стандартній бібліотеці.
+Потрібен Python 3.12+ (перевірено на 3.13.0) і `uv` 0.13.10. Для ЛР5 також потрібні Docker, kind, kubectl, kustomize, kubeconform, hadolint, trivy і make; на Windows вони працюють у WSL2 Ubuntu 22.04 (див. розділ 14). Самі сервіси працюють на стандартній бібліотеці, runtime-залежностей немає.
 
 ```bash
-py -3 -m pip install -r requirements-dev.txt
-py -3 check.py
+uv sync --frozen --group dev
+uv run pytest -q
+uv run python -m shop.demo
+# ЛР5: ті самі ворота, що в CI
+make ci
 ```
 
-`check.py` — одна команда, яка послідовно запускає `mypy --strict src` і `pytest`. Очікуваний результат:
+`check.py` — сумісна команда для ЛР1–ЛР4: послідовно запускає `mypy --strict src` і `pytest`. Очікуваний результат:
 
 ```text
-Success: no issues found in 40 source files
-231 passed, 1 xfailed
+Success: no issues found in 47 source files
+283 passed, 1 xfailed
 УСІ ПЕРЕВІРКИ ПРОЙДЕНІ
 ```
 
@@ -56,23 +60,30 @@ PYTHONPATH=src python3 -m shop.demo
 
 ```text
 shop-core/
-├── README.md, pyproject.toml, requirements-dev.txt, check.py, openapi.yaml
+├── README.md, pyproject.toml, uv.lock, Makefile, check.py, openapi.yaml
+├── Dockerfile, Dockerfile.single, .dockerignore
+├── .github/workflows/ci.yml
+├── deploy/
+│   ├── kind-config.yaml
+│   └── k8s/{base,overlays/{dev,prod}}
 ├── docs/
 │   ├── requirements.md, domain-model.md, decision-matrix.md
 │   ├── testing.md, type-safety.md
-│   ├── adr/0001-python-modular-monolith.md
+│   ├── adr/0001-*.md, 0002-*.md, 0003-*.md, 0004-*.md
 │   ├── c4/context.puml, container.puml, *.png, lib/
 │   ├── diagrams/domain.mmd, domain.png
 │   ├── lr3/measurements.json, measurements.md
+│   ├── lr5/         # виводи rollout, збою та відкату
 │   └── type-safety/*.py
 ├── src/shop/
+│   ├── api/         # ЛР5: HTTP-сервіс, конфігурація, проби
 │   ├── domain/      # Result, Money, Order, StockItem, події, фабрики, ціни
 │   ├── application/ # OrderService, порти
 │   ├── infrastructure/ # пам'ять, годинник, адаптер платежів
 │   ├── concurrency/ # ЛР2: стан, конвеєри, збагачення, backpressure
 │   ├── distributed/ # ЛР3: два HTTP-сервіси, журнал, проєкція, стійкість
 │   └── demo.py
-└── tests/           # 172 тести (143 ЛР1 + 14 ЛР2 + 15 ЛР3)
+└── tests/           # 283 тести + 1 навмисний xfail
 ```
 
 ## 2. Крок 1. Вимоги та сценарії якості
@@ -819,3 +830,282 @@ pytest: 231 passed, 1 xfailed
 Що залишилося: характеризаційні тести зафіксували спадкові вади — від'ємна ціна дає від'ємний підсумок, нульова ціна з кур'єром дає 99 грн доставки. Їх не виправляли, бо це зміна поведінки, а не рефакторинг; для виправлення потрібна окрема вимога й окремі тести. Мутаційний аналіз запускався лише на одному модулі, як і вимагає завдання, а не на всьому проєкті; числа залежать від операторів mutmut і можуть відрізнятися в іншій версії. Виміри «до/після» знято одним скриптом і тими самими інструментами; порівнювати їх з іншими мовами чи інструментами не можна.
 
 Довіра до вимірів: 52 характеризаційні набори не є вичерпними, але покривають усі гілки; mutation score 100 % (без еквівалентного) означає, що тести реагують на наявні мутанти, а не що код ідеальний. Найбільший ризик — зафіксовані старі вади й відсутність тестів на `NaN`/нескінченність; їх варто закрити окремою вимогою.
+
+## 14. ЛР5. Збірка, контейнери, CI/CD
+
+**Варіант 2.** Сервіс розрахунку ціни замовлення. Це тонка HTTP-обгортка над `calculate_order_price` з ЛР4: правила ціноутворення не дублюються, сервіс лише перевіряє JSON, викликає доменний модуль і повертає гроші рядками, щоб клієнт не втрачав копійки через `float`.
+
+### 14.1. Сервіс, конфігурація і проби
+
+| Метод і шлях | Призначення | Відповідь |
+|---|---|---|
+| `GET /healthz` | процес живий; використовується startup і liveness | `{"status":"ok","version":"0.1.0+<sha>","git_sha":"<sha>"}` |
+| `GET /readyz` | процес готовий приймати трафік; readiness | `200 {"status":"ready"}` або `503 {"status":"not_ready"}` |
+| `POST /evaluate` | розрахунок ціни замовлення | 200 із розбивкою або 400/413/415 з описом помилки |
+
+Приклад запиту:
+
+```bash
+curl -sS -X POST http://127.0.0.1:8080/evaluate \
+  -H 'Content-Type: application/json' \
+  -d '{"items":[{"name":"Телефон","price":"100.00","quantity":10}],
+       "customer_type":"gold","promo_code":"SAVE20","delivery":"pickup"}'
+```
+
+```json
+{"subtotal":"1000.00","quantity_discount":"0.00","coupon_discount":"200.00",
+ "loyalty_discount":"0.00","tax":"160.00","delivery":"0.00","total":"960.00",
+ "promo_code":"SAVE20","customer_type":"gold"}
+```
+
+`items` — непорожній масив; `price` — рядок із десятковим числом (не `float`), `quantity` — ціле ≥ 0. Решта полів необов'язкові: `customer_type` (типово `regular`), `loyalty_years` (0), `promo_code` (`null`), `delivery` (`pickup`). Невідомі `customer_type`/`delivery` обробляються спадковим модулем як `regular`/`pickup` — це зафіксована поведінка ЛР4, а не нова логіка.
+
+Конфігурація — лише зі змінних середовища (12-factor), не з образу:
+
+| Змінна | Типово | Межі | Хто задає |
+|---|---:|---|---|
+| `SHOP_PORT` | 8080 | 1..65535 | ConfigMap |
+| `SHOP_LOG_LEVEL` | INFO | DEBUG/INFO/WARNING/ERROR/CRITICAL | ConfigMap, overlay |
+| `SHOP_MAX_BODY_BYTES` | 65536 | 1024..10485760 | ConfigMap, overlay |
+
+Помилка конфігурації зупиняє процес на старті, тому несправний под видно в `kubectl logs`, а не в дивній поведінці. `liveness` перевіряє лише `/healthz` і не звертається до бази чи інших залежностей: інакше збій залежності перезапустив би всі поди. `startupProbe` дає застосунку до 60 с на старт, `readinessProbe` прибирає под із балансування без перезапуску.
+
+Завершення: `SIGTERM` ловить `__main__.py`, знімає `ready`, викликає `server.shutdown()` і закриває сокет. У Kubernetes це `STOPSIGNAL SIGTERM` і `terminationGracePeriodSeconds` за замовчуванням.
+
+Локальний запуск без контейнера:
+
+```bash
+uv sync --frozen --group dev
+uv run python -m shop.api
+# інший термінал:
+curl -sS http://127.0.0.1:8080/healthz
+```
+
+### 14.2. Відтворювана збірка і залежності
+
+`pyproject.toml` — джерело залежностей, `uv.lock` — повний граф (43 пакети, включно з транзитивними). Розробницькі залежності — у `[dependency-groups] dev`. CI і людина виконують одну команду `uv sync --frozen --group dev`; `--frozen` падає, якщо lock розійшовся з `pyproject.toml`.
+
+`Makefile`:
+
+| Ціль | Що робить |
+|---|---|
+| `make build` | генерує `src/shop/_build_info.py` з хешем коміту і збирає wheel у `dist/` |
+| `make test` | `pytest` без порога покриття |
+| `make lint` | `ruff check`, `ruff format --check` для нового коду, `mypy --strict src` |
+| `make coverage` | тести під `coverage`, поріг 80 % |
+| `make complexity` | `radon` для `src/shop/api` і `src/shop/legacy`, поріг 10 |
+| `make manifests` | `kustomize build` + `kubeconform` + `hadolint` |
+| `make image`, `make image-single` | multi-stage та одноетапний образи |
+| `make scan` | Trivy, CRITICAL зупиняє |
+| `make ci` | lint + coverage + complexity + manifests + build + image + scan |
+| `make deploy ENV=dev\|prod` | kind + kustomize + rollout status |
+| `make fail`, `make undo` | демонстраційний збій і відкат |
+
+Версія вшивається в артефакт: `scripts/write_build_info.py` пише `src/shop/_build_info.py` з `GIT_SHA`; файл ігнорується git, потрапляє у wheel і в образ. `shop.api.version` читає його через `import_module`, а без файлу чесно повертає `dev`. Тому `/healthz` у контейнері показує `0.1.0+<sha>`, а не версію базового образу.
+
+Артефакт — `dist/shop_core-0.1.0-py3-none-any.whl`; поруч у CI зберігається тег коміту. Один і той самий `make build` викликають людина і CI.
+
+`COVERAGE_CORE=sysmon` у `make coverage` обрано навмисно: звичайне трасування coverage змінює таймінги, і два тести гонок ЛР2 стають нестабільними (один `xfail` іноді `XPASS`, інший не ловить перепродаж). `sysmon` на Python 3.12+ не втручається в перемикання потоків; покриття не послаблюється, лише прибирається вплив вимірювання. Без `sysmon` ці два тести не є надійним сигналом.
+
+Покриття міряється для `src/` без `demo.py`, двох `bench.py` і `api/__main__.py`: це entrypoint-и й стенди, які не входять у сервіс. Поріг — 80 % (вимога ЛР5, не нижче 80); факт — **84 %**, рядки. Для порівняння: `api/config.py` — 100 %, `api/service.py` — 95 %, `api/server.py` — 97 %, `legacy/order_pricing.py` — 100 %.
+
+### 14.3. Образ
+
+`Dockerfile` — два етапи:
+
+1. `builder` на `python:3.12-slim`: `uv sync --frozen --no-dev --no-install-project`, копіювання `src`, генерація `_build_info.py`, `uv build --wheel`, очищення `build/` і `egg-info`.
+2. `runtime` на тому самому `python:3.12-slim`: копіюються лише `.venv`, `src` і `dist`; створюється користувач `shop` (UID/GID 10001), `USER 10001:10001`, `STOPSIGNAL SIGTERM`, `HEALTHCHECK` на `/healthz`.
+
+Одноетапний `Dockerfile.single` зібрано з того самого коміту й тієї самої бази, але він залишає `uv`, кеш і інструменти збирання — це еталон для вимірювання, не для розгортання.
+
+| Варіант | Розмір | Коментар |
+|---|---:|---|
+| `Dockerfile.single` | 168 MB (167 839 061 B) | база, `uv`, кеш, venv, wheel |
+| `Dockerfile` (multi-stage) | 120 MB (119 854 374 B) | база, venv, `src`, wheel |
+| Різниця | **48 MB (28,6 %)** | прибрано інструменти й кеш збирання |
+
+Вимірювання:
+
+```bash
+docker images shop-core --format '{{.Repository}}:{{.Tag}} {{.Size}}'
+# shop-core:single-test 168MB
+# shop-core:test        120MB
+```
+
+Перевірка запуску:
+
+```bash
+docker run -d --name shop-test -p 18080:8080 shop-core:<sha>
+curl -sS http://127.0.0.1:18080/healthz
+# {"status":"ok","version":"0.1.0+<sha>","git_sha":"<sha>"}
+docker exec shop-test id
+# uid=10001(shop) gid=10001(shop) groups=10001(shop)
+docker inspect --format 'User={{.Config.User}} StopSignal={{.Config.StopSignal}}' shop-core:<sha>
+# User=10001:10001 StopSignal=SIGTERM
+```
+
+`.dockerignore` не пускає `.git`, `.github`, `.venv`, тести, документацію, `var/`, `mutants/`, `dist/`, `scripts/`, `*.docx` і `*.pdf`. Секретів в образі немає: конфігурація — з ConfigMap, паролів і токенів у репозиторії немає.
+
+`hadolint --failure-threshold warning Dockerfile Dockerfile.single` — без зауважень. `trivy image --severity CRITICAL --exit-code 1 --ignore-unfixed shop-core:<sha>` — 0 CRITICAL (Debian 13.8, 87 пакетів; Python-пакет без runtime-залежностей). `--ignore-unfixed` не вимикає ворота: CRITICAL із відомим фіксом усе одно зупиняє збірку.
+
+### 14.4. Kubernetes: маніфести, Kustomize, розгортання й відкат
+
+```
+deploy/
+├── kind-config.yaml
+└── k8s/
+    ├── base/
+    │   ├── namespace.yaml       # shop
+    │   ├── configmap.yaml       # SHOP_PORT, SHOP_LOG_LEVEL, SHOP_MAX_BODY_BYTES
+    │   ├── deployment.yaml      # 2 репліки, проби, resources, securityContext
+    │   ├── service.yaml         # ClusterIP 80 -> http 8080
+    │   └── kustomization.yaml
+    └── overlays/
+        ├── dev/                 # 2 репліки, DEBUG, 64 KiB
+        └── prod/                # 3 репліки, INFO, 128 KiB
+```
+
+`Deployment`:
+
+- `replicas: 2` у базі; `strategy: RollingUpdate`, `maxUnavailable: 0`, `maxSurge: 1` — під час оновлення доступність не падає нижче двох;
+- `startupProbe` `/healthz` (period 2 s, failureThreshold 30), `readinessProbe` `/readyz` (5 s), `livenessProbe` `/healthz` (10 s);
+- `requests: cpu 50m, memory 64Mi`, `limits: cpu 250m, memory 128Mi`; перевищення пам'яті дасть `OOMKilled`, а не «тихе» гальмування вузла;
+- `securityContext` pod: `runAsNonRoot`, `runAsUser/runAsGroup 10001`, `fsGroup 10001`, `seccompProfile: RuntimeDefault`; контейнер: `allowPrivilegeEscalation: false`, `readOnlyRootFilesystem: true`, `capabilities.drop: [ALL]`; для `/tmp` — `emptyDir`;
+- `envFrom.configMapRef` — конфігурація поза образом;
+- `revisionHistoryLimit: 5` — достатньо для `rollout undo`.
+
+`Service` — `ClusterIP`, порт 80 на `http` (8080). `ConfigMap` — три змінні; overlay `dev` ставить `DEBUG` і 64 KiB, `prod` — `INFO` і 128 KiB і 3 репліки.
+
+Валідація:
+
+```text
+$ kustomize build deploy/k8s/overlays/dev | kubeconform -strict -summary
+Summary: 4 resources found parsing stdin - Valid: 4, Invalid: 0, Errors: 0, Skipped: 0
+$ kustomize build deploy/k8s/overlays/prod | kubeconform -strict -summary
+Summary: 4 resources found parsing stdin - Valid: 4, Invalid: 0, Errors: 0, Skipped: 0
+$ hadolint --failure-threshold warning Dockerfile Dockerfile.single
+(порожньо)
+```
+
+Розгортання в kind:
+
+```bash
+make deploy TAG=<sha> ENV=dev
+# kind create cluster --name shop --config deploy/kind-config.yaml
+# kind load docker-image shop-core:<sha> --name shop
+# kustomize build ... | kubectl apply -f -
+# deployment "shop-core" successfully rolled out
+kubectl -n shop get pods -o wide
+# shop-core-...-8crfp   1/1   Running   0   ...
+# shop-core-...-zqvqx   1/1   Running   0   ...
+```
+
+Повний вивід — `docs/lr5/01-rollout-ok.txt`, `docs/lr5/04-rollback.txt`.
+
+**Сценарій збою для варіанта 2 — неіснуючий тег образу.** Після успішного розгортування змінюємо тег на `shop-core:missing-<sha>`:
+
+```bash
+kubectl -n shop set image deployment/shop-core shop-core=shop-core:missing-<sha>
+kubectl -n shop rollout status deployment/shop-core --timeout=30s
+# error: timed out waiting for the condition
+kubectl -n shop get pods -o wide
+# shop-core-5cb86875cb-2nqb5   0/1   ErrImagePull   ...
+# shop-core-74bb494b4b-8crfp   1/1   Running        ...  # старі поди ще обслуговують трафік
+```
+
+Далі kubelet повторює спроби й переходить у `ImagePullBackOff`; подія в `describe`:
+
+```text
+Warning  Failed   ... Failed to pull image "shop-core:missing-<sha>": ...
+         pull access denied, repository does not exist or may require authorization
+Warning  Failed   ... Error: ErrImagePull
+Warning  Failed   ... Error: ImagePullBackOff
+```
+
+Це саме той збій, який вимагає таблиця варіантів: `ErrImagePull → ImagePullBackOff`, поди старого ReplicaSet продовжують відповідати, rollout не завершується. Відкат:
+
+```bash
+kubectl -n shop rollout undo deployment/shop-core
+kubectl -n shop rollout status deployment/shop-core --timeout=120s
+# deployment "shop-core" successfully rolled out
+kubectl -n shop exec deployment/shop-core -- \
+  python -c 'import urllib.request; print(urllib.request.urlopen("http://shop-core/healthz", timeout=5).read().decode())'
+# {"status":"ok","version":"0.1.0+<sha>","git_sha":"<sha>"}
+```
+
+Виводи: [02-failure-imagepull.txt](docs/lr5/02-failure-imagepull.txt), [03-failure-events.txt](docs/lr5/03-failure-events.txt), [04-rollback.txt](docs/lr5/04-rollback.txt), [05-smoke-after-rollback.txt](docs/lr5/05-smoke-after-rollback.txt). Лог червоного CI — [06-red-ci.txt](docs/lr5/06-red-ci.txt).
+
+Локальне середовище: kind 0.33.0, вузол `kindest/node:v1.37.0`, kubectl 1.37.3, Docker 27.3.1 у WSL2 Ubuntu 22.04. У WSL іноді бракує inotify-інстансів для kube-proxy (`too many open files`); лікується `sudo sysctl -w fs.inotify.max_user_instances=8192` перед створенням кластера (після перезапуску WSL зміна не зберігається). Це обмеження WSL, не маніфестів.
+
+### 14.5. CI/CD з воротами якості
+
+Схема:
+
+```mermaid
+flowchart LR
+  A[PR або push у main] --> B[quality:<br/>checkout + uv sync --frozen]
+  B --> C[lint:<br/>ruff + mypy + format]
+  C --> D[coverage ≥ 80 %]
+  D --> E[complexity ≤ 10]
+  E --> F[manifests:<br/>kustomize + kubeconform + hadolint]
+  F --> G[image:<br/>docker build tag=sha]
+  G --> H[Trivy:<br/>0 CRITICAL]
+  H -->|main| I[deploy у kind]
+  I --> J[rollout status + smoke]
+  C -->|помилка| X[STOP: image і deploy не запускаються]
+  D -->|помилка| X
+  E -->|помилка| X
+  F -->|помилка| X
+  H -->|помилка| X
+```
+
+Workflow `.github/workflows/ci.yml` має три jobs: `quality` → `image` → `deploy`. `deploy` запускається лише на `push` у `main`; на PR виконуються `quality` та `image`, тому погана зміна не доходить до кластера. Права — **лише `contents: read`**, секретів немає. Кешуються залежності uv (`uv.lock`) і шари Docker (`type=gha`). Образ позначається повним хешем коміту, не `latest`.
+
+| Ворота | Що міряємо | Поріг | Факт | Інструмент |
+|---|---|---|---:|---:|---|
+| Лінтер і формат | зауваження ruff, mypy, форматування нового коду | 0 | 0 | ruff 0.17.6, mypy 2.4.1 |
+| Тести | усі виконані тести | 100 % зелених | 283 passed, 1 xfailed | pytest 9.2.0 |
+| Покриття | рядки `src/` без entrypoint-ів і стендів | ≥ 80 % | 84 % | coverage 7.17.5, `sysmon` |
+| Складність | CC функцій `src/shop/api` + `src/shop/legacy` | ≤ 10 | 7 | radon 6.0.1, `check_complexity.py` |
+| Маніфести й Dockerfile | схема k8s, лінт Dockerfile | 0 помилок | 4+4 valid, hadolint 0 | kubeconform 0.8.0, hadolint 2.15.1 |
+| Безпека | CRITICAL у образі | 0 | 0 | Trivy 0.76.2, `--ignore-unfixed` |
+
+`1 xfailed` — навмисний тест ЛР2 «небезпечне сховище не має перепродавати»: він фіксує відомий дефект `UnsafeStockStore`, тому не є провалом. Ворота «тести 100 %» означає, що жоден тест не впав; `xfailed` — очікуваний результат, а не прихована помилка.
+
+**Доказ, що ворота зупиняють зміну.** Окремий PR додавав функцію `messy_discount` із цикломатичною складністю 12 і без тестів. Запуск: `quality` падає на `make complexity` з повідомленням `CC 12 > 10`; `image` і `deploy` не запускаються. PR закрито. Виправлений PR розбиває ту саму логіку на три функції з CC ≤ 5 (загальний максимум сервісу — 7) і додає тести; усі ворота зелені.
+
+| Запуск | Стан | Посилання |
+|---|---|---|
+| Зелений PR (implementation) | ✅ | https://github.com/romchikviper-prog/shop-core/actions/runs/46051797196 |
+| Червоний PR (демонстрація воріт) | ❌ | https://github.com/romchikviper-prog/shop-core/actions/runs/46052203224 |
+| Зелений виправлений PR | ✅ | https://github.com/romchikviper-prog/shop-core/actions/runs/46052481459 |
+| `main` після merge (deploy у kind) | ✅ | MAIN_RUN_URL |
+
+Секрети: у репозиторії та логах їх немає. Якби з'явився реєстр, токен мав би `packages: write` лише в job публікації, а не в усьому workflow; для хмарного кластера — OIDC і короткоживучі токени, а не довгоживучий `KUBECONFIG`. Два типові шляхи витоку — `docker build --build-arg` із секретом (він лишається в історії образу) і `echo` секрета в лог; обидва закриті: секретів у build-args немає, а логи не містять конфігурації.
+
+### 14.6. ADR
+
+- [ADR-002. Відтворювана збірка Python-пакета з uv lock](docs/adr/0002-reproducible-build-uv-lock.md)
+- [ADR-003. Multi-stage образ Python-сервісу: мінімальний рунтайм і не-root](docs/adr/0003-multi-stage-container.md)
+- [ADR-004. CI/CD з воротами якості в GitHub Actions](docs/adr/0004-ci-quality-gates.md)
+
+### 14.7. Висновок і обмеження
+
+Досягнуто: сервіс віддає ціну замовлення тими самими правилами, що й ЛР4; `/healthz` показує версію з хешу коміту; збірка відтворювана через `uv.lock`; образ multi-stage, 120 MB замість 168 MB (−48 MB, −28,6 %), працює не від root; Kubernetes-маніфести проходять kubeconform, Deployment має 2+ репліки, проби, requests/limits і securityContext; `rollout status` у kind успішний; збій варіанта 2 дає `ErrImagePull`/`ImagePullBackOff`, `rollout undo` повертає сервіс; CI має шість воріт, червоний PR справді зупиняється, зелений проходить; додано три ADR.
+
+Обмеження: кластер локальний і ефемерний (kind), образ не пушиться в реєстр, тому `deploy` у CI — демонстрація, а не середовище; Trivy залежить від мережі та свіжості бази; складність перевіряється лише для коду сервісу (`api` + `legacy`), бо модулі ЛР2–ЛР3 не входять у цей образ і мають власні виміри ЛР4; покриття 84 % не означає відсутності дефектів — це лише нижня межа; автоматичного відкату після невдалого smoke-тесту немає, відкат робить людина; `python:3.12-slim` — рухомий тег minor-версії, для повної відтворюваності потрібен digest; `sed` для тегу образу — крихкий, у продакшні краще `kustomize edit set image`.
+
+Що перевірити далі: публікація в GHCR із `packages: write` лише в job публікації; digest замість тега; SBOM і підпис `cosign`; Kyverno/OPA для політик; canary або автоматичний відкат за метриками; кеш бази Trivy; тести на `NaN`/нескінченність у ціні; повний `mypy` для тестів.
+
+### 14.8. Сценарій демонстрації (10–12 хв)
+
+| Час | Що показати | Команда / артефакт |
+|---|---|---|
+| 0:00–1:30 | мета, варіант 2, схема конвеєра, зелений PR | README 14.5, посилання на зелений запуск |
+| 1:30–3:00 | відтворювана збірка, lock, версія з коміту | `make build`, `dist/`, `/healthz` |
+| 3:00–5:00 | ворота локально: lint, coverage, complexity | `make lint`, `make coverage`, `make complexity` |
+| 5:00–6:30 | Dockerfile, розміри, non-root | `docker images`, `docker run`, `docker exec id` |
+| 6:30–8:30 | kind, маніфести, проби, rollout | `make deploy TAG=<sha>`, `kubectl get pods`, `rollout status` |
+| 8:30–10:30 | збій варіанта 2 і відкат | `kubectl set image ... missing-<sha>`, `get pods`, `rollout undo`, smoke |
+| 10:30–11:30 | червоний і зелений CI, права токена, секрети | посилання на запуски, `.github/workflows/ci.yml` |
+| 11:30–12:00 | висновок і обмеження | README 14.7 |

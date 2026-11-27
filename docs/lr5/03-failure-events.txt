@@ -1,0 +1,10 @@
+$ kubectl -n shop describe pod shop-core-5cc458956d-82w84
+Events:
+  Type     Reason     Age                From               Message
+  ----     ------     ----               ----               -------
+  Normal   Scheduled  39s                default-scheduler  Successfully assigned shop/shop-core-5cc458956d-82w84 to shop-control-plane
+  Warning  Failed     25s (x2 over 38s)  kubelet            spec.containers{shop-core}: Failed to pull image "shop-core:missing-1115724": failed to pull and unpack image "docker.io/library/shop-core:missing-1115724": failed to resolve reference "docker.io/library/shop-core:missing-1115724": pull access denied, repository does not exist or may require authorization: server message: insufficient_scope: authorization failed
+  Warning  Failed     25s (x2 over 38s)  kubelet            spec.containers{shop-core}: Error: ErrImagePull
+  Normal   BackOff    12s (x2 over 38s)  kubelet            spec.containers{shop-core}: Back-off pulling image "shop-core:missing-1115724"
+  Warning  Failed     12s (x2 over 38s)  kubelet            spec.containers{shop-core}: Error: ImagePullBackOff
+  Normal   Pulling    1s (x3 over 39s)   kubelet            spec.containers{shop-core}: Pulling image "shop-core:missing-1115724"

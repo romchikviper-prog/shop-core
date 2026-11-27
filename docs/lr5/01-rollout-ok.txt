@@ -1,0 +1,13 @@
+$ kubectl -n shop rollout status deployment/shop-core --timeout=120s
+deployment "shop-core" successfully rolled out
+
+$ kubectl -n shop get deploy,rs,pods -o wide
+NAME                        READY   UP-TO-DATE   AVAILABLE   AGE   CONTAINERS   IMAGES              SELECTOR
+deployment.apps/shop-core   2/2     2            2           7s    shop-core    shop-core:1115724   app.kubernetes.io/name=shop-core
+
+NAME                                   DESIRED   CURRENT   READY   AGE   CONTAINERS   IMAGES              SELECTOR
+replicaset.apps/shop-core-5985d8568c   2         2         2       7s    shop-core    shop-core:1115724   app.kubernetes.io/name=shop-core,pod-template-hash=5985d8568c
+
+NAME                             READY   STATUS    RESTARTS   AGE   IP           NODE                 NOMINATED NODE   READINESS GATES
+pod/shop-core-5985d8568c-gp25h   1/1     Running   0          7s    10.244.0.8   shop-control-plane   <none>           <none>
+pod/shop-core-5985d8568c-khqxg   1/1     Running   0          7s    10.244.0.7   shop-control-plane   <none>           <none>

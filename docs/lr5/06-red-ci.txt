@@ -1,0 +1,3 @@
+﻿2026-11-27T18:49:06.2712072Z функцій: 60, максимальна CC: 12
+2026-11-27T18:49:06.2712843Z ПОРУШЕННЯ: src/shop/api/service.py:157 messy_discount — CC 12 > 10
+2026-11-27T18:49:06.2785653Z make: *** [Makefile:48: complexity] Error 1
