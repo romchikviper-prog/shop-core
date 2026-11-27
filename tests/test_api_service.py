@@ -2,11 +2,12 @@
 
 from __future__ import annotations
 
+from decimal import Decimal
 from typing import Any
 
 import pytest
 
-from shop.api.service import RequestError, evaluate
+from shop.api.service import RequestError, evaluate, fixed_discount
 
 
 def _payload(**overrides: Any) -> dict[str, Any]:
@@ -122,6 +123,44 @@ def test_rounding_uses_half_up() -> None:
     assert result["subtotal"] == "10.01"
     assert result["tax"] == "2.00"
     assert result["total"] == "12.01"
+
+
+@pytest.mark.parametrize(
+    ("subtotal", "customer", "years", "promo", "delivery", "expected"),
+    [
+        ("1000", "gold", 6, None, "pickup", "70.00"),
+        ("1000", "gold", 5, None, "pickup", "50.00"),
+        ("1000", "silver", 4, None, "pickup", "40.00"),
+        ("1000", "silver", 3, None, "pickup", "30.00"),
+        ("1000", "regular", 11, None, "pickup", "20.00"),
+        ("1000", "regular", 10, None, "pickup", "0.00"),
+        ("600", "regular", 0, "SAVE10", "pickup", "60.00"),
+        ("500", "regular", 0, "SAVE10", "pickup", "0.00"),
+        ("1001", "regular", 0, "SAVE20", "pickup", "200.20"),
+        ("1000", "regular", 0, "SAVE20", "pickup", "0.00"),
+        ("2001", "regular", 0, None, "express", "50.00"),
+        ("2000", "regular", 0, None, "express", "0.00"),
+        ("1000", "gold", 6, "SAVE10", "pickup", "170.00"),
+        ("3000", "gold", 6, "SAVE20", "express", "860.00"),
+    ],
+)
+def test_fixed_discount_is_split_into_small_steps(
+    subtotal: str,
+    customer: str,
+    years: int,
+    promo: str | None,
+    delivery: str,
+    expected: str,
+) -> None:
+    result = fixed_discount(
+        Decimal(subtotal),
+        customer,
+        years,
+        promo,
+        delivery,
+    )
+
+    assert result == Decimal(expected)
 
 
 @pytest.mark.parametrize(

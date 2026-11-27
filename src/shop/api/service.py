@@ -152,3 +152,47 @@ def _money_text(value: object, field: str) -> str:
     if not isinstance(value, Decimal):
         raise RuntimeError(f"calculate_order_price повернув некоректне поле {field}")
     return f"{value:.2f}"
+
+
+def _status_discount(
+    subtotal: Decimal,
+    customer_type: str,
+    loyalty_years: int,
+) -> Decimal:
+    if customer_type == "gold":
+        rate = Decimal("0.07") if loyalty_years > 5 else Decimal("0.05")
+    elif customer_type == "silver":
+        rate = Decimal("0.04") if loyalty_years > 3 else Decimal("0.03")
+    else:
+        rate = Decimal("0.02") if loyalty_years > 10 else Decimal("0")
+    return subtotal * rate
+
+
+def _promo_discount(subtotal: Decimal, promo_code: str | None) -> Decimal:
+    if promo_code == "SAVE10" and subtotal > 500:
+        return subtotal * Decimal("0.10")
+    if promo_code == "SAVE20" and subtotal > 1000:
+        return subtotal * Decimal("0.20")
+    return Decimal("0")
+
+
+def _express_discount(subtotal: Decimal, delivery: str) -> Decimal:
+    if delivery == "express" and subtotal > 2000:
+        return Decimal("50")
+    return Decimal("0")
+
+
+def fixed_discount(
+    subtotal: Decimal,
+    customer_type: str,
+    loyalty_years: int,
+    promo_code: str | None,
+    delivery: str,
+) -> Decimal:
+    """Виправлена версія демонстраційної функції: три маленькі кроки."""
+
+    return (
+        _status_discount(subtotal, customer_type, loyalty_years)
+        + _promo_discount(subtotal, promo_code)
+        + _express_discount(subtotal, delivery)
+    )
