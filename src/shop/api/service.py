@@ -152,3 +152,45 @@ def _money_text(value: object, field: str) -> str:
     if not isinstance(value, Decimal):
         raise RuntimeError(f"calculate_order_price повернув некоректне поле {field}")
     return f"{value:.2f}"
+
+
+def messy_discount(
+    subtotal: Decimal,
+    customer_type: str,
+    loyalty_years: int,
+    promo_code: str | None,
+    delivery: str,
+) -> Decimal:
+    """Демонстраційна функція для перевірки воріт складності.
+
+    Навмисно написана погано: вкладені умови й магічні числа. Вона не
+    викликається з HTTP-сервісу; її єдина мета — показати, що CI падає
+    на порозі CC > 10, а не пропускає таку зміну.
+    """
+
+    discount = Decimal("0")
+    if customer_type == "gold":
+        if loyalty_years > 5:
+            discount = subtotal * Decimal("0.07")
+        else:
+            discount = subtotal * Decimal("0.05")
+    elif customer_type == "silver":
+        if loyalty_years > 3:
+            discount = subtotal * Decimal("0.04")
+        else:
+            discount = subtotal * Decimal("0.03")
+    else:
+        if loyalty_years > 10:
+            discount = subtotal * Decimal("0.02")
+        else:
+            discount = Decimal("0")
+    if promo_code == "SAVE10":
+        if subtotal > 500:
+            discount = discount + subtotal * Decimal("0.10")
+    elif promo_code == "SAVE20":
+        if subtotal > 1000:
+            discount = discount + subtotal * Decimal("0.20")
+    if delivery == "express":
+        if subtotal > 2000:
+            discount = discount + Decimal("50")
+    return discount
