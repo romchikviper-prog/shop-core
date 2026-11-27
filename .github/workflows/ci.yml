@@ -1,0 +1,167 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  IMAGE: shop-core
+
+jobs:
+  quality:
+    name: Якість
+    runs-on: ubuntu-latest
+    steps:
+      - name: Код
+        uses: actions/checkout@v4
+
+      - name: Python і uv
+        uses: astral-sh/setup-uv@v6
+        with:
+          version: "0.13.10"
+          python-version: "3.12"
+          enable-cache: true
+          cache-dependency-glob: uv.lock
+
+      - name: Залежності з lock-файлу
+        run: uv sync --frozen --group dev
+
+      - name: Версія з хешу коміту
+        run: make prepare GIT_SHA=${GITHUB_SHA::7}
+
+      - name: Лінтер і формат
+        run: make lint
+
+      - name: Тести з порогом покриття
+        run: make coverage
+        env:
+          COVERAGE_CORE: sysmon
+
+      - name: Цикломатична складність
+        run: make complexity
+
+      - name: Валідатори маніфестів
+        run: |
+          mkdir -p "$HOME/.local/bin"
+          curl -fsSL "https://github.com/kubernetes-sigs/kustomize/releases/download/kustomize%2Fv5.8.3/kustomize_v5.8.3_linux_amd64.tar.gz" \
+            | tar -xz -C "$HOME/.local/bin" kustomize
+          curl -fsSL "https://github.com/yannh/kubeconform/releases/download/v0.8.0/kubeconform-linux-amd64.tar.gz" \
+            | tar -xz -C "$HOME/.local/bin" kubeconform
+          curl -fsSL "https://github.com/hadolint/hadolint/releases/download/v2.15.1/hadolint-Linux-x86_64" \
+            -o "$HOME/.local/bin/hadolint"
+          chmod +x "$HOME/.local/bin/hadolint" "$HOME/.local/bin/kustomize" "$HOME/.local/bin/kubeconform"
+          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+
+      - name: Маніфести та Dockerfile
+        run: make manifests
+
+  image:
+    name: Образ і сканування
+    needs: quality
+    runs-on: ubuntu-latest
+    steps:
+      - name: Код
+        uses: actions/checkout@v4
+
+      - name: Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Зібрати образ із тегом коміту
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          build-args: |
+            GIT_SHA=${{ github.sha }}
+          tags: ${{ env.IMAGE }}:${{ github.sha }}
+          load: true
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Trivy — CRITICAL зупиняє конвеєр
+        run: |
+          curl -fsSL "https://github.com/aquasecurity/trivy/releases/download/v0.76.2/trivy_0.76.2_Linux-64bit.tar.gz" \
+            | tar -xz -C /tmp trivy
+          sudo install -m 0755 /tmp/trivy /usr/local/bin/trivy
+          trivy image --severity CRITICAL --exit-code 1 --ignore-unfixed "$IMAGE:$GITHUB_SHA"
+
+      - name: Зберегти образ для deploy
+        run: docker save "$IMAGE:$GITHUB_SHA" | gzip > /tmp/shop-core-image.tar.gz
+
+      - name: Артефакт образу
+        uses: actions/upload-artifact@v4
+        with:
+          name: shop-core-image
+          path: /tmp/shop-core-image.tar.gz
+          retention-days: 1
+
+  deploy:
+    name: Розгортання в kind
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: image
+    runs-on: ubuntu-latest
+    steps:
+      - name: Код
+        uses: actions/checkout@v4
+
+      - name: Образ
+        uses: actions/download-artifact@v4
+        with:
+          name: shop-core-image
+          path: /tmp
+
+      - name: kind, kubectl, kustomize
+        run: |
+          curl -fsSL -o /tmp/kind "https://kind.sigs.k8s.io/dl/v0.33.0/kind-linux-amd64"
+          curl -fsSL -o /tmp/kubectl "https://dl.k8s.io/release/v1.37.3/bin/linux/amd64/kubectl"
+          curl -fsSL "https://github.com/kubernetes-sigs/kustomize/releases/download/kustomize%2Fv5.8.3/kustomize_v5.8.3_linux_amd64.tar.gz" \
+            | tar -xz -C /tmp kustomize
+          sudo install -m 0755 /tmp/kind /usr/local/bin/kind
+          sudo install -m 0755 /tmp/kubectl /usr/local/bin/kubectl
+          sudo install -m 0755 /tmp/kustomize /usr/local/bin/kustomize
+
+      - name: Кластер kind
+        run: kind create cluster --name shop --config deploy/kind-config.yaml
+
+      - name: Завантажити образ у кластер
+        run: |
+          gunzip -c /tmp/shop-core-image.tar.gz | docker load
+          kind load docker-image "$IMAGE:$GITHUB_SHA" --name shop
+
+      - name: Застосувати prod-накладку
+        run: |
+          kustomize build deploy/k8s/overlays/prod \
+            | sed "s|shop-core:local|$IMAGE:$GITHUB_SHA|g" \
+            | kubectl apply -f -
+          kubectl -n shop rollout status deployment/shop-core --timeout=180s
+          kubectl -n shop get pods -o wide
+
+      - name: Smoke-тест через Service
+        run: |
+          kubectl -n shop port-forward svc/shop-core 18080:80 &
+          PF_PID=$!
+          trap 'kill $PF_PID' EXIT
+          for _ in $(seq 1 30); do
+            if curl -fsS -o /dev/null http://127.0.0.1:18080/healthz; then
+              break
+            fi
+            sleep 1
+          done
+          echo "health:"
+          curl -fsS http://127.0.0.1:18080/healthz
+          echo
+          echo "evaluate:"
+          curl -fsS -X POST http://127.0.0.1:18080/evaluate \
+            -H 'Content-Type: application/json' \
+            -d '{"items":[{"name":"Телефон","price":"100.00","quantity":10}],"customer_type":"gold","promo_code":"SAVE20","delivery":"pickup"}' \
+            | tee /tmp/evaluate.json
+          echo
+          grep -q '"total":"960.00"' /tmp/evaluate.json
