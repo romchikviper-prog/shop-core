@@ -1076,7 +1076,7 @@ Workflow `.github/workflows/ci.yml` має три jobs: `quality` → `image` �
 
 | Запуск | Стан | Посилання |
 |---|---|---|
-| Зелений PR (implementation) | ✅ | https://github.com/romchikviper-prog/shop-core/actions/runs/46051797196 |
+| Зелений PR (implementation) | ✅ | https://github.com/romchikviper-prog/shop-core/actions/runs/46053406674 |
 | Червоний PR (демонстрація воріт) | ❌ | https://github.com/romchikviper-prog/shop-core/actions/runs/46052203224 |
 | Зелений виправлений PR | ✅ | https://github.com/romchikviper-prog/shop-core/actions/runs/46052481459 |
 | `main` після merge (deploy у kind) | ✅ | MAIN_RUN_URL |
