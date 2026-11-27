@@ -1,4 +1,5 @@
 SHELL := /bin/sh
+export PATH := $(HOME)/.local/bin:$(PATH)
 
 UV ?= uv
 GIT_SHA ?= $(shell git rev-parse --short=7 HEAD 2>/dev/null || echo dev)
