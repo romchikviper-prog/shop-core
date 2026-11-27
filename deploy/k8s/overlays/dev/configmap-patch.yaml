@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: shop-core-config
+data:
+  SHOP_LOG_LEVEL: DEBUG
+  SHOP_MAX_BODY_BYTES: "65536"
