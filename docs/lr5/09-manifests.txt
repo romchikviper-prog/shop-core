@@ -1,0 +1,8 @@
+$ kustomize build deploy/k8s/overlays/dev | kubeconform -strict -summary
+Summary: 4 resources found parsing stdin - Valid: 4, Invalid: 0, Errors: 0, Skipped: 0
+
+$ kustomize build deploy/k8s/overlays/prod | kubeconform -strict -summary
+Summary: 4 resources found parsing stdin - Valid: 4, Invalid: 0, Errors: 0, Skipped: 0
+
+$ hadolint --failure-threshold warning Dockerfile Dockerfile.single
+hadolint: OK (0 зауважень)

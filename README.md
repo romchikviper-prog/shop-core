@@ -948,6 +948,8 @@ docker inspect --format 'User={{.Config.User}} StopSignal={{.Config.StopSignal}}
 
 `hadolint --failure-threshold warning Dockerfile Dockerfile.single` — без зауважень. `trivy image --severity CRITICAL --exit-code 1 --ignore-unfixed shop-core:<sha>` — 0 CRITICAL (Debian 13.8, 87 пакетів; Python-пакет без runtime-залежностей). `--ignore-unfixed` не вимикає ворота: CRITICAL із відомим фіксом усе одно зупиняє збірку.
 
+Повні виводи: [08-container.txt](docs/lr5/08-container.txt) (запуск, `/healthz`, UID, SIGTERM), [07-image-sizes.txt](docs/lr5/07-image-sizes.txt) (розміри в байтах).
+
 ### 14.4. Kubernetes: маніфести, Kustomize, розгортання й відкат
 
 ```
@@ -986,6 +988,8 @@ Summary: 4 resources found parsing stdin - Valid: 4, Invalid: 0, Errors: 0, Skip
 $ hadolint --failure-threshold warning Dockerfile Dockerfile.single
 (порожньо)
 ```
+
+Повний вивід — [09-manifests.txt](docs/lr5/09-manifests.txt).
 
 Розгортання в kind:
 
@@ -1079,7 +1083,9 @@ Workflow `.github/workflows/ci.yml` має три jobs: `quality` → `image` �
 | Зелений PR (implementation) | ✅ | https://github.com/romchikviper-prog/shop-core/actions/runs/46053406674 |
 | Червоний PR (демонстрація воріт) | ❌ | https://github.com/romchikviper-prog/shop-core/actions/runs/46052203224 |
 | Зелений виправлений PR | ✅ | https://github.com/romchikviper-prog/shop-core/actions/runs/46052481459 |
-| `main` після merge (deploy у kind) | ✅ | MAIN_RUN_URL |
+| `main` після merge (deploy у kind) | ✅ | https://github.com/romchikviper-prog/shop-core/actions/runs/46053914479 |
+
+Повний вивід deploy-job (3 поди prod-накладки, `rollout status`, smoke) — [10-main-deploy.txt](docs/lr5/10-main-deploy.txt).
 
 Секрети: у репозиторії та логах їх немає. Якби з'явився реєстр, токен мав би `packages: write` лише в job публікації, а не в усьому workflow; для хмарного кластера — OIDC і короткоживучі токени, а не довгоживучий `KUBECONFIG`. Два типові шляхи витоку — `docker build --build-arg` із секретом (він лишається в історії образу) і `echo` секрета в лог; обидва закриті: секретів у build-args немає, а логи не містять конфігурації.
 

@@ -1,0 +1,20 @@
+$ docker run -d --name shop-test -p 18080:8080 shop-core:1115724
+b89c6cf565e1a3612f4af99c4ed7e55b779a1b7f56b542c934eec3309af2ad8a
+
+$ curl -sS http://127.0.0.1:18080/healthz
+{"status":"ok","version":"0.1.0+1115724","git_sha":"1115724"}
+$ curl -sS http://127.0.0.1:18080/readyz
+{"status":"ready"}
+$ POST /evaluate
+{"subtotal":"1000.00","quantity_discount":"0.00","coupon_discount":"200.00","loyalty_discount":"0.00","tax":"160.00","delivery":"0.00","total":"960.00","promo_code":"SAVE20","customer_type":"gold"}
+$ docker exec shop-test id
+uid=10001(shop) gid=10001(shop) groups=10001(shop)
+
+$ docker inspect --format ...
+User=10001:10001 StopSignal=SIGTERM
+
+$ docker logs shop-test
+2026-11-27 19:04:04,503 INFO shop.api shop-core 0.1.0+1115724 слухає на порту 8080
+2026-11-27 19:04:05,924 INFO shop.api 172.17.0.1 "GET /healthz HTTP/1.1" 200 -
+2026-11-27 19:04:05,933 INFO shop.api 172.17.0.1 "GET /readyz HTTP/1.1" 200 -
+2026-11-27 19:04:05,941 INFO shop.api 172.17.0.1 "POST /evaluate HTTP/1.1" 200 -

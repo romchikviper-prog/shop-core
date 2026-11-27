@@ -1,0 +1,29 @@
+# GitHub Actions run 46053914479, job «Розгортання в kind» (main)
+
+$ kustomize build deploy/k8s/overlays/prod | sed "s|shop-core:local|shop-core:ef11c8c|g" | kubectl apply -f -
+namespace/shop created
+configmap/shop-core-config created
+service/shop-core created
+deployment.apps/shop-core created
+
+$ kubectl -n shop rollout status deployment/shop-core --timeout=180s
+deployment "shop-core" successfully rolled out
+
+$ kubectl -n shop get pods -o wide
+shop-core-86865679b9-mg6g4   1/1   Running   0   13s   10.244.0.3   shop-control-plane
+shop-core-86865679b9-s79gz   1/1   Running   0   13s   10.244.0.7   shop-control-plane
+shop-core-86865679b9-z7rcn   1/1   Running   0   13s   10.244.0.4   shop-control-plane
+
+$ kubectl -n shop port-forward svc/shop-core 18080:80
+Forwarding from 127.0.0.1:18080 -> 8080
+
+$ curl -fsS http://127.0.0.1:18080/healthz
+200 OK
+
+$ curl -fsS -X POST http://127.0.0.1:18080/evaluate ...
+{"subtotal":"1000.00","quantity_discount":"0.00","coupon_discount":"200.00",
+ "loyalty_discount":"0.00","tax":"160.00","delivery":"0.00","total":"960.00",
+ "promo_code":"SAVE20","customer_type":"gold"}
+
+$ grep -q '"total":"960.00"' /tmp/evaluate.json
+(exit 0)
