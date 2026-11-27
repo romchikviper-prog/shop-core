@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: shop-core
+  labels:
+    app.kubernetes.io/name: shop-core
+    app.kubernetes.io/part-of: shop
+spec:
+  type: ClusterIP
+  selector:
+    app.kubernetes.io/name: shop-core
+  ports:
+    - name: http
+      port: 80
+      targetPort: http

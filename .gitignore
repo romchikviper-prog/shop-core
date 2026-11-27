@@ -1,5 +1,6 @@
 __pycache__/
 *.py[cod]
+src/shop/_build_info.py
 .pytest_cache/
 .mypy_cache/
 .venv/

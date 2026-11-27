@@ -23,7 +23,7 @@ from shop.domain.errors import (
     TotalMismatch,
 )
 from shop.domain.ids import CustomerId, OrderId, Sku
-from shop.domain.money import Currency, Money
+from shop.domain.money import Money
 from shop.domain.order import OrderLine
 from shop.domain.payment import PaymentReceipt
 from shop.domain.result import Err, Ok, Result

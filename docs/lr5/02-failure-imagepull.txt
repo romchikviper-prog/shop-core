@@ -1,0 +1,18 @@
+$ kubectl -n shop set image deployment/shop-core shop-core=shop-core:missing-1115724
+deployment.apps/shop-core image updated
+
+$ kubectl -n shop rollout status deployment/shop-core --timeout=30s
+Waiting for deployment "shop-core" rollout to finish: 1 out of 2 new replicas have been updated...
+error: timed out waiting for the condition
+
+--- одразу після зміни тега: ErrImagePull ---
+NAME                         READY   STATUS         RESTARTS   AGE   IP           NODE                 NOMINATED NODE   READINESS GATES
+shop-core-5985d8568c-gp25h   1/1     Running        0          42s   10.244.0.8   shop-control-plane   <none>           <none>
+shop-core-5985d8568c-khqxg   1/1     Running        0          42s   10.244.0.7   shop-control-plane   <none>           <none>
+shop-core-5cc458956d-82w84   0/1     ErrImagePull   0          34s   10.244.0.9   shop-control-plane   <none>           <none>
+
+--- після повторних спроб pull: ImagePullBackOff ---
+NAME                         READY   STATUS             RESTARTS   AGE   IP           NODE                 NOMINATED NODE   READINESS GATES
+shop-core-5985d8568c-gp25h   1/1     Running            0          46s   10.244.0.8   shop-control-plane   <none>           <none>
+shop-core-5985d8568c-khqxg   1/1     Running            0          46s   10.244.0.7   shop-control-plane   <none>           <none>
+shop-core-5cc458956d-82w84   0/1     ImagePullBackOff   0          38s   10.244.0.9   shop-control-plane   <none>           <none>

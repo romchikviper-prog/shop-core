@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: shop-core-config
+  labels:
+    app.kubernetes.io/name: shop-core
+    app.kubernetes.io/part-of: shop
+data:
+  SHOP_PORT: "8080"
+  SHOP_LOG_LEVEL: INFO
+  SHOP_MAX_BODY_BYTES: "65536"
