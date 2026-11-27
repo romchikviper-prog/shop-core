@@ -24,7 +24,7 @@ from shop.domain.pricing import BasePrice
 from shop.domain.result import Err, Ok, Result
 from shop.infrastructure.memory import InMemoryInventory, InMemoryOrderRepository
 from tests.fakes import ApprovingGateway, FixedClock, SequenceGateway
-from tests.helpers import NOW, PHONE, address, laptop_line, phone_line, uah
+from tests.helpers import NOW, PHONE, address, uah
 
 
 def create_order(service: OrderService) -> OrderId:

@@ -5,12 +5,39 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "shop-core"
 version = "0.1.0"
-description = "Ядро домену інтернет-магазину електроніки (ЛР1–ЛР3, варіант 2)"
+description = "Ядро домену інтернет-магазину електроніки (ЛР1–ЛР5, варіант 2)"
 requires-python = ">=3.12"
 dependencies = []
 
+[dependency-groups]
+dev = [
+    "coverage==7.17.5",
+    "mutmut==3.8.1",
+    "mypy==2.4.1",
+    "pylint==4.1.4",
+    "pytest==9.2.0",
+    "pytest-bdd==9.0.1",
+    "PyYAML==6.0.3",
+    "radon==6.0.1",
+    "ruff==0.17.6",
+]
+
 [tool.setuptools.packages.find]
 where = ["src"]
+
+[tool.coverage.run]
+source = ["src"]
+omit = [
+    "src/shop/demo.py",
+    "src/shop/concurrency/bench.py",
+    "src/shop/distributed/bench.py",
+    "src/shop/api/__main__.py",
+]
+
+[tool.coverage.report]
+show_missing = true
+skip_covered = false
+fail_under = 80
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
@@ -22,6 +49,15 @@ python_version = "3.12"
 strict = true
 mypy_path = "src"
 files = ["src"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+extend-exclude = ["mutants", "var"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "B"]
+ignore = ["E501"]
 
 [tool.mutmut]
 source_paths = ["src"]
