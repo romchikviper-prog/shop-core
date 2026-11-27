@@ -1,7 +1,9 @@
-multi-stage: 119854374 bytes
-single-stage: 167839061 bytes
-REPOSITORY   TAG              IMAGE ID       CREATED          SIZE
-shop-core    single-1115724   c36f1b55102f   3 minutes ago    168MB
-shop-core    1115724          4bebb949e91c   3 minutes ago    120MB
-shop-core    single-test      53af246a6374   20 minutes ago   168MB
-shop-core    test             905cc21cec28   20 minutes ago   120MB
+$ docker image inspect shop-core:1115724 --format '{{.Size}}'
+119854374
+
+$ docker image inspect shop-core:single-1115724 --format '{{.Size}}'
+167839061
+
+multi-stage: 119 854 374 B = 120 MB
+single-stage: 167 839 061 B = 168 MB
+різниця: 47 984 687 B = 48 MB (28,6 %)
